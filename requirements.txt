@@ -21,6 +21,7 @@ tqdm>=4.66.0
 # API & Serving
 fastapi>=0.112.0
 uvicorn>=0.30.0
+python-multipart>=0.0.9
 
 # Testing
 pytest>=8.0.0
