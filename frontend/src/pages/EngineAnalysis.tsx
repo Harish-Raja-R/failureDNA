@@ -70,7 +70,7 @@ export const EngineAnalysis: React.FC = () => {
 
   const handleLoadSampleCSV = () => {
     try {
-      const records = DEMO_TELEMETRY.engine_1;
+      const records: any[] = [...DEMO_TELEMETRY.engine_1];
       if (!records || records.length === 0) return;
       const headers = Object.keys(records[0]);
       const csvRows = [
