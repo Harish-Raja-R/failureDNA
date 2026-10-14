@@ -27,6 +27,15 @@ DEMO_ENGINES = {
 }
 
 
+try:
+    import spaces
+    gpu_decorator = spaces.GPU
+except (ImportError, AttributeError):
+    def gpu_decorator(fn):
+        return fn
+
+
+@gpu_decorator
 def analyze_telemetry_csv(file_obj):
     """Process uploaded CSV telemetry file."""
     if file_obj is None:
@@ -59,6 +68,7 @@ def analyze_telemetry_csv(file_obj):
         return f"Error during analysis: {str(e)}", None, None, None
 
 
+@gpu_decorator
 def analyze_demo_engine(engine_name):
     """Run analysis on selected demo engine."""
     unit_id = DEMO_ENGINES.get(engine_name, 1)
