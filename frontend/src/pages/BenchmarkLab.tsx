@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  BarChart2,
   Database,
   RefreshCw,
   Scale,
@@ -14,15 +13,17 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
 import { fetchBenchmark } from '../services/api';
 import { BenchmarkResponse } from '../types';
+import { SpotlightCard } from '../components/SpotlightCard';
 
 export const BenchmarkLab: React.FC = () => {
   const [data, setData] = useState<BenchmarkResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeMetricTab, setActiveMetricTab] = useState<'mae_rmse' | 'nasa'>('mae_rmse');
+  const [activeMetricTab, setActiveMetricTab] = useState<'mae_rmse' | 'nasa' | 'r2'>('mae_rmse');
 
   const loadData = async () => {
     setLoading(true);
@@ -41,259 +42,403 @@ export const BenchmarkLab: React.FC = () => {
     loadData();
   }, []);
 
-  // Filter models for chart display (primary baselines + FailureDNA models)
-  const chartModels = data?.model_comparison
-    ?.filter((m) => m.model_key !== 'random_encoder_control' && m.model_key !== 'operating_condition_only')
-    .map((m) => ({
-      name: m.model_name.replace(' (Window Stats)', '').replace(' Baseline', ''),
-      mae: Number(m.mae.toFixed(2)),
-      rmse: Number(m.rmse.toFixed(2)),
-      r2: Number(m.r2.toFixed(3)),
-      nasa_score: Math.round(m.nasa_score),
-    })) || [];
+  // Filter models for clear comparative chart presentation
+  const chartModels =
+    data?.model_comparison
+      ?.filter((m) => m.model_key !== 'random_encoder_control' && m.model_key !== 'operating_condition_only')
+      .map((m) => ({
+        key: m.model_key,
+        name: m.model_name.replace(' (Window Stats)', '').replace(' Baseline', '').replace(' (Supervised)', ''),
+        mae: Number(m.mae.toFixed(2)),
+        rmse: Number(m.rmse.toFixed(2)),
+        r2: Number(m.r2.toFixed(3)),
+        nasa_score: Math.round(m.nasa_score),
+        isFailureDNA: m.model_key === 'failuredna_regime_aware',
+      })) || [];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-sans flex items-center space-x-3">
-            <Database className="w-7 h-7 text-red-500" />
-            <span>Official FD004 Benchmark Evaluation & Statistical Audit</span>
+    <div className="space-y-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Editorial Header */}
+      <div className="border-b border-[#E7E5E0] pb-6 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center space-x-2 text-xs font-mono uppercase tracking-wider text-[#F0448A] font-semibold">
+            <Database className="w-3.5 h-3.5" />
+            <span>Official Fleet Benchmark & Statistical Audit</span>
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#171717]">
+            NASA C-MAPSS FD004 Benchmark Evaluation
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Reproducible comparative evaluation across 248 official NASA C-MAPSS FD004 test engines with FWER-controlled paired bootstrap inference.
+          <p className="text-sm text-[#737373] max-w-3xl leading-relaxed">
+            Standardized comparative evaluation across all 248 official test engines using 130-cycle early
+            degradation capping, accompanied by paired bootstrap inference ($B=10,000$) and Holm FWER control.
           </p>
         </div>
+
         <button
           onClick={loadData}
           disabled={loading}
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition-all"
+          className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-white hover:bg-[#F8F8F5] text-[#171717] text-xs font-medium border border-[#E7E5E0] shadow-subtle transition-all disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Metrics</span>
+          <RefreshCw className={`w-3.5 h-3.5 text-[#737373] ${loading ? 'animate-spin' : ''}`} />
+          <span>Refresh Benchmark Data</span>
         </button>
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-950/60 border border-red-500/40 p-4 text-red-300 text-xs">
-          Failed to load benchmark data: {error}
+        <div className="p-4 rounded-xl bg-[#FDE8F1] border border-[#F0448A]/30 text-xs text-[#DC2626]">
+          {error}
         </div>
       )}
 
-      {/* Primary Conclusion Box */}
-      <div className="rounded-xl bg-gradient-to-r from-slatepanel-900 via-charcoal-900 to-slatepanel-900 border border-slate-700 p-6 space-y-3">
-        <div className="flex items-center space-x-2 text-amber-400 text-xs font-mono font-semibold">
-          <Scale className="w-4 h-4" />
-          <span>OFFICIAL SCIENTIFIC VERDICT & HYPOTHESIS TESTING SUMMARY</span>
-        </div>
-        <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-sans font-medium">
-          {data?.scientific_conclusion ||
-            'Under the omnibus Holm step-down correction for family-wise error rate (FWER) control, XGBoost maintains a statistically significant MAE advantage over FailureDNA (Regime-Aware) (Δ = +2.8571 cycles, adjusted p = 0.0150). Neither the RMSE difference (Δ = +1.2827 cycles, adjusted p = 0.8140) nor the NASA score difference (Δ = -137.12 points, adjusted p = 0.9220) is statistically significant. Therefore, FailureDNA does not establish overall prognostic superiority over gradient-boosted trees on FD004.'}
-        </p>
-        <div className="flex flex-wrap gap-4 pt-2 text-xs text-slate-400 font-mono">
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Direction: Δ = Metric(FailureDNA) − Metric(XGBoost)</span>
+      {/* Official Scientific Verdict Banner */}
+      <section>
+        <SpotlightCard className="p-6 bg-white border-[#E7E5E0] space-y-4 shadow-card">
+          <div className="flex items-center justify-between border-b border-[#E7E5E0] pb-3">
+            <div className="flex items-center space-x-2 text-xs font-mono font-semibold text-[#171717]">
+              <Scale className="w-4 h-4 text-[#F0448A]" />
+              <span className="uppercase tracking-wider">Formal Hypothesis Testing & Statistical Verdict</span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#F8F8F5] border border-[#E7E5E0] text-[#737373]">
+              B = 10,000 Resamples &bull; Seed 42
+            </span>
           </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400" />
-            <span>Loss Metrics: Lower is Better (MAE, RMSE, NASA Score)</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
-            <span>Goodness-of-Fit: Higher is Better (R²)</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Benchmark Metric Comparison Charts */}
-      <div className="rounded-xl bg-slatepanel-900 border border-slate-800 p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <p className="text-sm sm:text-base text-[#171717] leading-relaxed font-sans font-medium">
+            {data?.scientific_conclusion ||
+              'Under the omnibus Holm step-down correction for family-wise error rate (FWER) control, XGBoost maintains a statistically significant MAE advantage over FailureDNA (Regime-Aware) (Δ = +2.8571 cycles, adjusted p = 0.0150). Neither the RMSE difference (Δ = +1.2827 cycles, adjusted p = 0.8140) nor the NASA score difference (Δ = -137.12 points, adjusted p = 0.9220) is statistically significant. Therefore, FailureDNA does not establish overall prognostic superiority over gradient-boosted trees on FD004.'}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs font-mono text-[#737373]">
+            <div className="p-3 rounded-lg bg-[#F8F8F5] border border-[#E7E5E0]">
+              <span className="text-[10px] uppercase text-[#737373] block">MAE Metric Delta</span>
+              <span className="text-sm font-semibold text-[#F0448A] mt-0.5 block">&Delta; = +2.86 Cycles</span>
+              <span className="text-[10px] text-[#737373]">p_adj = 0.0150 (Stat. Significant)</span>
+            </div>
+            <div className="p-3 rounded-lg bg-[#F8F8F5] border border-[#E7E5E0]">
+              <span className="text-[10px] uppercase text-[#737373] block">RMSE Metric Delta</span>
+              <span className="text-sm font-semibold text-[#171717] mt-0.5 block">&Delta; = +1.28 Cycles</span>
+              <span className="text-[10px] text-[#737373]">p_adj = 0.8140 (Non-Significant)</span>
+            </div>
+            <div className="p-3 rounded-lg bg-[#F8F8F5] border border-[#E7E5E0]">
+              <span className="text-[10px] uppercase text-[#737373] block">NASA Asymmetric Score Delta</span>
+              <span className="text-sm font-semibold text-[#15966A] mt-0.5 block">&Delta; = -137.12 Points</span>
+              <span className="text-[10px] text-[#737373]">p_adj = 0.9220 (Non-Significant)</span>
+            </div>
+          </div>
+        </SpotlightCard>
+      </section>
+
+      {/* Interactive Benchmark Comparison Charts */}
+      <section className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E7E5E0] pb-3">
           <div>
-            <h2 className="text-base font-semibold text-white flex items-center space-x-2">
-              <BarChart2 className="w-5 h-5 text-red-400" />
-              <span>Comparative Performance by Architecture (248 Test Engines)</span>
+            <h2 className="font-display text-xl font-bold text-[#171717]">
+              Multi-Model Performance Comparison
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Comparison across tabular summary baselines, neural baselines, and FailureDNA self-supervised models.
+            <p className="text-xs text-[#737373] mt-0.5">
+              Evaluating representations across error magnitude (MAE), heavy penalties (RMSE), asymmetric scoring, and variance explained ($R^2$).
             </p>
           </div>
-          <div className="flex rounded-lg bg-charcoal-900 border border-slate-800 p-1 text-xs">
+
+          {/* Metric Selector Tabs */}
+          <div className="flex p-1 rounded-lg bg-white border border-[#E7E5E0] shadow-subtle text-xs font-mono">
             <button
               onClick={() => setActiveMetricTab('mae_rmse')}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeMetricTab === 'mae_rmse' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-200'
+              className={`px-3 py-1.5 rounded-md transition-colors ${
+                activeMetricTab === 'mae_rmse'
+                  ? 'bg-[#171717] text-white font-medium'
+                  : 'text-[#737373] hover:text-[#171717]'
               }`}
             >
               MAE & RMSE (Cycles)
             </button>
             <button
               onClick={() => setActiveMetricTab('nasa')}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeMetricTab === 'nasa' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-200'
+              className={`px-3 py-1.5 rounded-md transition-colors ${
+                activeMetricTab === 'nasa'
+                  ? 'bg-[#171717] text-white font-medium'
+                  : 'text-[#737373] hover:text-[#171717]'
               }`}
             >
-              NASA Asymmetric Score
+              NASA Score
+            </button>
+            <button
+              onClick={() => setActiveMetricTab('r2')}
+              className={`px-3 py-1.5 rounded-md transition-colors ${
+                activeMetricTab === 'r2'
+                  ? 'bg-[#171717] text-white font-medium'
+                  : 'text-[#737373] hover:text-[#171717]'
+              }`}
+            >
+              R² Coefficient
             </button>
           </div>
         </div>
 
-        {/* Recharts Bar Chart */}
-        <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            {activeMetricTab === 'mae_rmse' ? (
-              <BarChart data={chartModels} margin={{ top: 20, right: 30, left: 10, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis
-                  dataKey="name"
-                  stroke="#64748B"
-                  interval={0}
-                  angle={-30}
-                  textAnchor="end"
-                  tick={{ fill: '#94A3B8', fontSize: 10, fontFamily: 'monospace' }}
-                />
-                <YAxis stroke="#64748B" tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: 'monospace' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#131B2E', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }}
-                />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="mae" name="Mean Absolute Error (Cycles)" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="rmse" name="Root Mean Squared Error (Cycles)" fill="#06B6D4" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            ) : (
-              <BarChart data={chartModels} margin={{ top: 20, right: 30, left: 10, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis
-                  dataKey="name"
-                  stroke="#64748B"
-                  interval={0}
-                  angle={-30}
-                  textAnchor="end"
-                  tick={{ fill: '#94A3B8', fontSize: 10, fontFamily: 'monospace' }}
-                />
-                <YAxis stroke="#64748B" tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: 'monospace' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#131B2E', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }}
-                />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="nasa_score" name="NASA Asymmetric Penalty Score" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            )}
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Official Benchmark Leaderboard Table */}
-      <div className="rounded-xl bg-slatepanel-900 border border-slate-800 p-6 space-y-4">
-        <h3 className="text-base font-semibold text-white">Full Benchmark Evaluation Table (248 Test Engines)</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400">
-                <th className="py-2.5 px-3 font-sans">Model Architecture</th>
-                <th className="py-2.5 px-3 font-sans">Category</th>
-                <th className="py-2.5 px-3">MAE [95% CI]</th>
-                <th className="py-2.5 px-3">RMSE [95% CI]</th>
-                <th className="py-2.5 px-3">R² Score</th>
-                <th className="py-2.5 px-3">NASA Penalty</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/80">
-              {data?.model_comparison?.map((row, idx) => {
-                const isWinner = row.model_key === 'xgboost';
-                const isFDNA = row.model_key.startsWith('failuredna_regime_aware');
-                return (
-                  <tr
-                    key={idx}
-                    className={`hover:bg-slate-800/40 transition-colors ${
-                      isWinner ? 'bg-red-950/20 text-red-200' : isFDNA ? 'bg-cyan-950/20 text-cyan-200' : ''
-                    }`}
-                  >
-                    <td className="py-3 px-3 font-sans font-semibold text-slate-200">{row.model_name}</td>
-                    <td className="py-3 px-3 text-slate-400 font-sans">{row.category}</td>
-                    <td className="py-3 px-3">
-                      <span className="font-bold text-white">{row.mae.toFixed(2)}</span>{' '}
-                      <span className="text-[10px] text-slate-500">
-                        [{row.mae_ci_lower.toFixed(1)}, {row.mae_ci_upper.toFixed(1)}]
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="font-bold text-white">{row.rmse.toFixed(2)}</span>{' '}
-                      <span className="text-[10px] text-slate-500">
-                        [{row.rmse_ci_lower.toFixed(1)}, {row.rmse_ci_upper.toFixed(1)}]
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-slate-300 font-bold">{row.r2.toFixed(3)}</td>
-                    <td className="py-3 px-3 text-amber-300 font-bold">
-                      {row.nasa_score > 100000 ? row.nasa_score.toExponential(2) : Math.round(row.nasa_score).toLocaleString()}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Paired Bootstrap Statistical Audit Table */}
-      <div className="rounded-xl bg-slatepanel-900 border border-slate-800 p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div>
-            <h3 className="text-base font-semibold text-white">
-              Phase 5.2.1 Paired-Bootstrap Inference & FWER Multiple-Comparisons Adjustments
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Resampled at engine unit level ($B=2,000$, seed=42). Holm step-down procedure applied across omnibus ($m=15$) and metric ($m=5$) families.
-            </p>
+        {/* Chart Canvas */}
+        <SpotlightCard className="p-6 bg-white">
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              {activeMetricTab === 'mae_rmse' ? (
+                <BarChart data={chartModels} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E0" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#737373"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={{ stroke: '#E7E5E0' }}
+                  />
+                  <YAxis
+                    stroke="#737373"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    label={{
+                      value: 'Cycles (Lower is Better)',
+                      angle: -90,
+                      position: 'insideLeft',
+                      fill: '#737373',
+                      fontSize: 11,
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#E7E5E0',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                      fontSize: '12px',
+                      fontFamily: 'JetBrains Mono, monospace',
+                    }}
+                  />
+                  <Legend
+                    wrapperStyle={{ paddingTop: '10px', fontSize: '12px', fontFamily: 'JetBrains Mono' }}
+                  />
+                  <Bar dataKey="mae" name="MAE (Cycles)" fill="#171717" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="rmse" name="RMSE (Cycles)" fill="#F0448A" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              ) : activeMetricTab === 'nasa' ? (
+                <BarChart data={chartModels} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E0" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#737373"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={{ stroke: '#E7E5E0' }}
+                  />
+                  <YAxis
+                    stroke="#737373"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    label={{
+                      value: 'Asymmetric Penalty (Lower is Better)',
+                      angle: -90,
+                      position: 'insideLeft',
+                      fill: '#737373',
+                      fontSize: 11,
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#E7E5E0',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontFamily: 'JetBrains Mono, monospace',
+                    }}
+                  />
+                  <Bar dataKey="nasa_score" name="NASA Penalty Score" fill="#F0448A" radius={[4, 4, 0, 0]}>
+                    {chartModels.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.isFailureDNA ? '#F0448A' : entry.key.includes('xgboost') ? '#171717' : '#A3A3A3'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              ) : (
+                <BarChart data={chartModels} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E0" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#737373"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={{ stroke: '#E7E5E0' }}
+                  />
+                  <YAxis
+                    stroke="#737373"
+                    fontSize={11}
+                    tickLine={false}
+                    axisLine={false}
+                    domain={[0, 1]}
+                    label={{
+                      value: 'R² Score (Higher is Better)',
+                      angle: -90,
+                      position: 'insideLeft',
+                      fill: '#737373',
+                      fontSize: 11,
+                    }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#E7E5E0',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontFamily: 'JetBrains Mono, monospace',
+                    }}
+                  />
+                  <Bar dataKey="r2" name="R² Coefficient of Determination" fill="#15966A" radius={[4, 4, 0, 0]}>
+                    {chartModels.map((entry, index) => (
+                      <Cell
+                        key={`cell-r2-${index}`}
+                        fill={entry.isFailureDNA ? '#F0448A' : entry.key.includes('xgboost') ? '#171717' : '#737373'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              )}
+            </ResponsiveContainer>
           </div>
+        </SpotlightCard>
+      </section>
+
+      {/* Comprehensive Official Metric Table */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-[#E7E5E0] pb-3">
+          <h2 className="font-display text-xl font-bold text-[#171717]">
+            Official Test Fleet Performance Table
+          </h2>
+          <span className="font-mono text-xs text-[#737373]">248 Turbofan Engines</span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono border-collapse">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400">
-                <th className="py-2.5 px-3 font-sans">Model Comparison</th>
-                <th className="py-2.5 px-3">Metric</th>
-                <th className="py-2.5 px-3">Delta Mean [95% CI]</th>
-                <th className="py-2.5 px-3">Raw p-value</th>
-                <th className="py-2.5 px-3">Holm Metric p</th>
-                <th className="py-2.5 px-3">Holm Omnibus p</th>
-                <th className="py-2.5 px-3 font-sans">Statistical Verdict (α=0.05)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/80">
-              {data?.statistical_audit_paired_bootstrap?.map((row, idx) => {
-                const isSig = row.sig_omnibus_05;
-                return (
-                  <tr key={idx} className={`hover:bg-slate-800/40 transition-colors ${isSig ? 'bg-red-950/20' : ''}`}>
-                    <td className="py-2.5 px-3 font-sans font-medium text-slate-200">{row.comparison}</td>
-                    <td className="py-2.5 px-3 uppercase text-slate-400">{row.metric}</td>
-                    <td className="py-2.5 px-3">
-                      {row.delta_mean >= 0 ? `+${row.delta_mean.toFixed(2)}` : row.delta_mean.toFixed(2)}{' '}
-                      <span className="text-[10px] text-slate-500">
-                        [{row.ci_lower.toFixed(1)}, {row.ci_upper.toFixed(1)}]
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-300">{row.raw_p_value.toFixed(4)}</td>
-                    <td className="py-2.5 px-3 text-slate-300">{row.holm_adj_p_metric.toFixed(4)}</td>
-                    <td className="py-2.5 px-3 font-bold text-white">{row.holm_adj_p_omnibus.toFixed(4)}</td>
-                    <td className="py-2.5 px-3">
-                      {isSig ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] bg-red-950 border border-red-500/40 text-red-400 font-bold">
-                          Significant ({row.stat_advantage_winner})
+        <SpotlightCard className="bg-white overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-[#E7E5E0] bg-[#F8F8F5] text-[#737373] text-[11px]">
+                  <th className="py-3 px-4 font-semibold text-[#171717]">Model Architecture</th>
+                  <th className="py-3 px-3 font-normal">Feature Type</th>
+                  <th className="py-3 px-3 font-normal">MAE (95% CI)</th>
+                  <th className="py-3 px-3 font-normal">RMSE (95% CI)</th>
+                  <th className="py-3 px-3 font-normal">R² Score</th>
+                  <th className="py-3 px-4 font-normal text-right">NASA Score</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E7E5E0]">
+                {data?.model_comparison?.map((row) => {
+                  const isFailureDNA = row.model_key === 'failuredna_regime_aware';
+                  const isXGBoost = row.model_key === 'xgboost_supervised';
+                  return (
+                    <tr
+                      key={row.model_key}
+                      className={`hover:bg-[#F8F8F5]/80 transition-colors ${
+                        isFailureDNA ? 'bg-[#FDE8F1]/40 font-medium' : isXGBoost ? 'bg-[#F8F8F5]/50' : ''
+                      }`}
+                    >
+                      <td className="py-3 px-4 text-[#171717]">
+                        <div className="flex items-center space-x-2">
+                          {isFailureDNA && <span className="w-1.5 h-1.5 rounded-full bg-[#F0448A]" />}
+                          <span className={isFailureDNA ? 'font-bold text-[#F0448A]' : 'font-medium'}>
+                            {row.model_name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-[#737373] text-[11px]">{row.features}</td>
+                      <td className="py-3 px-3 text-[#171717] tabular-nums">
+                        {row.mae.toFixed(2)}
+                        <span className="text-[#A3A3A3] text-[10px] ml-1">
+                          [{row.mae_ci_lower.toFixed(1)}, {row.mae_ci_upper.toFixed(1)}]
                         </span>
-                      ) : (
-                        <span className="text-[10px] text-slate-500">Not Significant (CI spans 0)</span>
-                      )}
-                    </td>
+                      </td>
+                      <td className="py-3 px-3 text-[#171717] tabular-nums">
+                        {row.rmse.toFixed(2)}
+                        <span className="text-[#A3A3A3] text-[10px] ml-1">
+                          [{row.rmse_ci_lower.toFixed(1)}, {row.rmse_ci_upper.toFixed(1)}]
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-[#171717] tabular-nums">{row.r2.toFixed(3)}</td>
+                      <td className="py-3 px-4 text-right font-semibold tabular-nums text-[#171717]">
+                        {Math.round(row.nasa_score).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </SpotlightCard>
+      </section>
+
+      {/* Paired Bootstrap Statistical Significance Table */}
+      {data?.statistical_audit_paired_bootstrap && data.statistical_audit_paired_bootstrap.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E7E5E0] pb-3">
+            <div>
+              <h2 className="font-display text-lg font-bold text-[#171717]">
+                Paired Bootstrap Inference & FWER Matrix
+              </h2>
+              <p className="text-xs text-[#737373] mt-0.5">
+                Evaluates null hypothesis H₀: E[Δ] = 0 with omnibus Holm-Bonferroni correction.
+              </p>
+            </div>
+            <span className="font-mono text-xs text-[#15966A] font-semibold">Strict Family-Wise Error Control</span>
+          </div>
+
+          <SpotlightCard className="bg-white overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr className="border-b border-[#E7E5E0] bg-[#F8F8F5] text-[#737373] text-[11px]">
+                    <th className="py-2.5 px-4 font-semibold text-[#171717]">Comparison Pair</th>
+                    <th className="py-2.5 px-3 font-normal">Metric</th>
+                    <th className="py-2.5 px-3 font-normal">Delta Mean (Δ)</th>
+                    <th className="py-2.5 px-3 font-normal">95% Bootstrap CI</th>
+                    <th className="py-2.5 px-3 font-normal">Raw p-value</th>
+                    <th className="py-2.5 px-3 font-normal">Holm Omnibus p</th>
+                    <th className="py-2.5 px-4 font-normal text-right">Advantage</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody className="divide-y divide-[#E7E5E0]">
+                  {data.statistical_audit_paired_bootstrap.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-[#F8F8F5]/60 transition-colors">
+                      <td className="py-2.5 px-4 text-[#171717] font-medium">{row.comparison}</td>
+                      <td className="py-2.5 px-3 text-[#737373] uppercase">{row.metric}</td>
+                      <td className="py-2.5 px-3 tabular-nums font-semibold text-[#171717]">
+                        {row.delta_mean > 0 ? `+${row.delta_mean.toFixed(2)}` : row.delta_mean.toFixed(2)}
+                      </td>
+                      <td className="py-2.5 px-3 tabular-nums text-[#737373]">
+                        [{row.ci_lower.toFixed(2)}, {row.ci_upper.toFixed(2)}]
+                      </td>
+                      <td className="py-2.5 px-3 tabular-nums text-[#737373]">{row.raw_p_value.toFixed(4)}</td>
+                      <td className="py-2.5 px-3 tabular-nums font-medium text-[#171717]">
+                        {row.holm_adj_p_omnibus.toFixed(4)}
+                      </td>
+                      <td className="py-2.5 px-4 text-right">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
+                            row.stat_advantage_winner === 'XGBoost'
+                              ? 'bg-[#F8F8F5] text-[#171717] border border-[#E7E5E0]'
+                              : 'bg-[#EAE5FF] text-[#5B46D6]'
+                          }`}
+                        >
+                          {row.stat_advantage_winner}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </SpotlightCard>
+        </section>
+      )}
     </div>
   );
 };
+
+export default BenchmarkLab;

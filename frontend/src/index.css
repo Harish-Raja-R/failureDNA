@@ -3,36 +3,113 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+  --bg-cream: #F8F8F5;
+  --text-charcoal: #171717;
+  --text-graphite: #737373;
+  --accent-pink: #F0448A;
+  --accent-emerald: #15966A;
+  --accent-lavender: #EAE5FF;
+  --border-warm: #E7E5E0;
 }
 
 body {
   margin: 0;
-  background-color: #0B0F17;
-  color: #F8FAFC;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #F8F8F5;
+  color: #171717;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbars */
+/* Subtle Technical Grid Background */
+.bg-tech-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(231, 229, 224, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(231, 229, 224, 0.45) 1px, transparent 1px);
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(rgba(115, 115, 115, 0.15) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+/* Refined Editorial Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B0F17;
+  background: #F8F8F5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 4px;
+  background: #D8D5CE;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #A3A3A3;
 }
 
+/* Spotlight Card Base */
+.spotlight-card {
+  position: relative;
+  background-color: #FFFFFF;
+  border: 1px solid #E7E5E0;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.22s ease;
+}
+
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    450px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(240, 68, 138, 0.05),
+    transparent 80%
+  );
+  z-index: 1;
+}
+
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+.spotlight-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Number display utility */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Accessible focus ring */
+*:focus-visible {
+  outline: 2px solid #F0448A;
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
