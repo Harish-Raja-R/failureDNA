@@ -323,27 +323,77 @@ class FailureDNAInferenceService:
         }
 
     def analyze_csv_bytes(self, content: bytes, filename: str) -> Dict[str, Any]:
-        """Parse uploaded CSV bytes and run analysis."""
+        """Parse uploaded CSV or TXT bytes and run analysis.
+        
+        Robustly supports both formatted CSV files with header rows and raw space-separated
+        or comma-separated NASA C-MAPSS logs without header rows.
+        """
         if len(content) > 10 * 1024 * 1024:
             raise ValueError(f"Uploaded file '{filename}' exceeds maximum allowed size of 10 MB.")
 
         try:
-            # Attempt parsing as standard CSV or space-delimited
-            text = content.decode("utf-8")
-            first_line = text.strip().split("\n")[0]
-            sep = "," if "," in first_line else r"\s+"
-            df = pd.read_csv(StringIO(text), sep=sep)
-        except Exception as e:
-            raise ValueError(f"Failed to parse CSV file '{filename}': {e}")
+            text = content.decode("utf-8").strip()
+            if not text:
+                raise ValueError("Uploaded file is empty.")
 
-        # Check if columns are integers (like raw C-MAPSS files without header)
-        if len(df.columns) in (26, 28) and all(str(c).isdigit() for c in df.columns):
+            first_line = text.split("\n")[0].strip()
+            sep = "," if "," in first_line else r"\s+"
+
+            # Detect whether first line is numeric (raw C-MAPSS data without headers)
+            tokens = [t.strip() for t in first_line.split(",") if t.strip()] if "," in first_line else first_line.split()
+            is_numeric = False
+            try:
+                # If first several tokens can be parsed as numbers, there is no header row
+                [float(t) for t in tokens[:min(len(tokens), 5)]]
+                is_numeric = True
+            except (ValueError, IndexError):
+                is_numeric = False
+
             raw_cols = [ID_COL, CYCLE_COL] + SETTING_COLS + SENSOR_COLS
-            if len(df.columns) > 26:
-                raw_cols += [f"extra_{i}" for i in range(len(df.columns) - 26)]
-            df.columns = raw_cols[: len(df.columns)]
+
+            if is_numeric:
+                df = pd.read_csv(StringIO(text), sep=sep, header=None)
+                if len(df.columns) in (26, 28):
+                    cols = raw_cols + [f"extra_{i}" for i in range(len(df.columns) - 26)]
+                    df.columns = cols[: len(df.columns)]
+                elif len(df.columns) == 24:
+                    cols = SETTING_COLS + SENSOR_COLS
+                    df.columns = cols
+            else:
+                df = pd.read_csv(StringIO(text), sep=sep)
+                # Map common column name variations
+                col_map = {}
+                for c in df.columns:
+                    c_clean = str(c).strip().lower()
+                    if c_clean in ("unit", "unit_number", "engine_id", "id"):
+                        col_map[c] = ID_COL
+                    elif c_clean in ("time", "time_cycles", "cycles"):
+                        col_map[c] = CYCLE_COL
+                if col_map:
+                    df = df.rename(columns=col_map)
+        except Exception as e:
+            raise ValueError(f"Failed to parse telemetry file '{filename}': {e}")
+
+        # If file contains multiple units, take the first unit trajectory
+        if ID_COL in df.columns and df[ID_COL].nunique() > 1:
+            first_unit = df[ID_COL].iloc[0]
+            df = df[df[ID_COL] == first_unit].copy()
 
         return self.analyze_telemetry_dataframe(df)
+
+    def analyze_csv_file(self, file_path: Union[str, Path]) -> Dict[str, Any]:
+        """Read a CSV/txt file from disk and run analysis."""
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Telemetry file not found: {path}")
+        with open(path, "rb") as f:
+            content = f.read()
+        return self.analyze_csv_bytes(content, filename=path.name)
+
+    def analyze_sequence(self, unit_id: int, sequence_records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze a list of flight cycle telemetry observation dictionaries."""
+        df = pd.DataFrame.from_records(sequence_records)
+        return self.analyze_telemetry_dataframe(df, unit_id=unit_id)
 
     def get_benchmark_results(self) -> Dict[str, Any]:
         """Serve official Phase 5 / 5.1 / 5.2 benchmark results directly from saved artifacts."""
@@ -418,4 +468,7 @@ def get_inference_service() -> FailureDNAInferenceService:
     global _inference_service
     if _inference_service is None:
         _inference_service = FailureDNAInferenceService()
+        _inference_service.initialize()
+    elif not _inference_service.is_ready:
+        _inference_service.initialize()
     return _inference_service

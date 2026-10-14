@@ -15,10 +15,10 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import gradio as gr
-from failuredna.inference.service import FailureDNAInferenceService
+from failuredna.inference.service import get_inference_service
 
 # Initialize singleton inference service
-service = FailureDNAInferenceService()
+service = get_inference_service()
 
 DEMO_ENGINES = {
     "Unit #001 (Nominal Initial Cycles)": 1,
@@ -39,28 +39,34 @@ except (ImportError, AttributeError):
 def analyze_telemetry_csv(file_obj):
     """Process uploaded CSV telemetry file."""
     if file_obj is None:
-        return "Please upload a CSV file.", None, None, None
+        return "Please upload a CSV or TXT file.", None, None, None
 
     try:
-        df = pd.read_csv(file_obj.name)
         result = service.analyze_csv_file(file_obj.name)
 
-        rul_text = f"**Predicted RUL:** {result.predicted_rul:.1f} cycles (Cap: 130 cycles)"
-        sig_text = f"**Discovered Signature:** {result.signature_name} ({result.signature_description})"
-        warnings_text = "\n".join(f"- {w}" for w in result.warnings) if result.warnings else "None. Sequence satisfies all constraints."
+        rul = result.get("predicted_rul", 0.0)
+        unclipped = result.get("predicted_rul_unclipped", 0.0)
+        sig_name = result.get("signature_name", "Unknown")
+        sig_desc = result.get("signature_description", "")
+        dist = result.get("distance_to_centroid")
+        dist_str = f" // Centroid Distance: {dist:.3f}" if dist is not None else ""
+
+        rul_text = f"### ⏱️ Predicted Remaining Useful Life: **{rul:.1f} Cycles**\n\n*(Unclipped Continuous RUL: {unclipped:.1f} cycles)*"
+        sig_text = f"### 🧬 Discovered Signature: **{sig_name}**\n\n{sig_desc}{dist_str}"
+        warnings_text = "\n".join(f"- {w}" for w in result.get("warnings", [])) if result.get("warnings") else "None. Sequence satisfies all constraints."
 
         # Sensor summary
         sensor_summary = pd.DataFrame([
             {
                 "Sensor": s,
-                "Start": t.start,
-                "End": t.end,
-                "Min": t.min,
-                "Max": t.max,
-                "Mean": t.mean,
-                "Delta": t.delta,
+                "Start": round(t["start"], 2),
+                "End": round(t["end"], 2),
+                "Min": round(t["min"], 2),
+                "Max": round(t["max"], 2),
+                "Mean": round(t["mean"], 2),
+                "Delta": round(t["delta"], 2),
             }
-            for s, t in list(result.sensor_trends.items())[:6]
+            for s, t in list(result.get("sensor_trends", {}).items())[:8]
         ])
 
         return rul_text, sig_text, warnings_text, sensor_summary
@@ -84,21 +90,28 @@ def analyze_demo_engine(engine_name):
 
         result = service.analyze_sequence(unit_id=unit_id, sequence_records=engine_df.to_dict(orient="records"))
 
-        rul_text = f"### ⏱️ Predicted Remaining Useful Life: **{result.predicted_rul:.1f} Cycles**\n\n*(Unclipped RUL: {result.predicted_rul_unclipped:.1f} cycles)*"
-        sig_text = f"### 🧬 Latent Signature: **{result.signature_name}**\n\n{result.signature_description}\n\n*Centroid Distance: {result.distance_to_centroid:.3f}*"
-        warnings_text = "\n".join(f"- {w}" for w in result.warnings) if result.warnings else "No warnings. All temporal windows validated."
+        rul = result.get("predicted_rul", 0.0)
+        unclipped = result.get("predicted_rul_unclipped", 0.0)
+        sig_name = result.get("signature_name", "Unknown")
+        sig_desc = result.get("signature_description", "")
+        dist = result.get("distance_to_centroid")
+        dist_str = f" // Centroid Distance: {dist:.3f}" if dist is not None else ""
+
+        rul_text = f"### ⏱️ Predicted Remaining Useful Life: **{rul:.1f} Cycles**\n\n*(Unclipped RUL: {unclipped:.1f} cycles)*"
+        sig_text = f"### 🧬 Latent Signature: **{sig_name}**\n\n{sig_desc}{dist_str}"
+        warnings_text = "\n".join(f"- {w}" for w in result.get("warnings", [])) if result.get("warnings") else "No warnings. All temporal windows validated."
 
         sensor_summary = pd.DataFrame([
             {
                 "Sensor": s,
-                "Start": round(t.start, 2),
-                "End": round(t.end, 2),
-                "Min": round(t.min, 2),
-                "Max": round(t.max, 2),
-                "Mean": round(t.mean, 2),
-                "Delta": round(t.delta, 2),
+                "Start": round(t["start"], 2),
+                "End": round(t["end"], 2),
+                "Min": round(t["min"], 2),
+                "Max": round(t["max"], 2),
+                "Mean": round(t["mean"], 2),
+                "Delta": round(t["delta"], 2),
             }
-            for s, t in list(result.sensor_trends.items())[:8]
+            for s, t in list(result.get("sensor_trends", {}).items())[:8]
         ])
 
         return rul_text, sig_text, warnings_text, sensor_summary

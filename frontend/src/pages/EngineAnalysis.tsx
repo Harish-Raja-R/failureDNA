@@ -33,6 +33,8 @@ export const EngineAnalysis: React.FC = () => {
   const [selectedDemo, setSelectedDemo] = useState<'engine_1' | 'engine_2'>('engine_1');
   const [jsonInput, setJsonInput] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [uploadedRecords, setUploadedRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResponse | null>(null);
@@ -66,14 +68,66 @@ export const EngineAnalysis: React.FC = () => {
     }
   };
 
+  const handleLoadSampleCSV = () => {
+    try {
+      const records = DEMO_TELEMETRY.engine_1;
+      if (!records || records.length === 0) return;
+      const headers = Object.keys(records[0]);
+      const csvRows = [
+        headers.join(','),
+        ...records.map((r: any) => headers.map((h) => r[h] ?? '').join(',')),
+      ];
+      const csvBlob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+      const sampleFile = new File([csvBlob], 'sample_engine_001.csv', { type: 'text/csv' });
+      setFile(sampleFile);
+      setUploadedRecords(records);
+      setError(null);
+    } catch (err: any) {
+      setError('Could not generate sample file: ' + err.message);
+    }
+  };
+
   const handleUploadCSV = async () => {
     if (!file) {
-      setError('Please select a valid .csv or .txt telemetry file to upload.');
+      setError('Please select or drop a valid .csv or .txt telemetry file to upload.');
       return;
     }
     setLoading(true);
     setError(null);
     try {
+      // Parse sample rows locally for interactive chart preview
+      try {
+        const text = await file.text();
+        const lines = text.trim().split('\n');
+        if (lines.length > 0) {
+          const firstLine = lines[0].trim();
+          const sep = firstLine.includes(',') ? ',' : /\s+/;
+          const rawCols = ['unit_id', 'cycle', 'setting_1', 'setting_2', 'setting_3', ...Array.from({ length: 21 }, (_, i) => `s_${i + 1}`)];
+          const firstToken = firstLine.split(sep)[0];
+          const isNumeric = !isNaN(parseFloat(firstToken));
+          const rowsToParse = (isNumeric ? lines : lines.slice(1)).slice(0, 300);
+          const parsedRows = rowsToParse.map((line, idx) => {
+            const parts = line.trim().split(sep);
+            const obj: any = {};
+            if (isNumeric) {
+              rawCols.forEach((col, cIdx) => {
+                obj[col] = parseFloat(parts[cIdx]) || 0;
+              });
+            } else {
+              const headers = firstLine.split(sep);
+              headers.forEach((h, cIdx) => {
+                obj[h.trim()] = parseFloat(parts[cIdx]) || 0;
+              });
+            }
+            if (!obj.cycle) obj.cycle = idx + 1;
+            return obj;
+          });
+          setUploadedRecords(parsedRows);
+        }
+      } catch {
+        // Fallback silently if preview parsing fails
+      }
+
       const res = await analyzeCSV(file);
       setResult(res);
     } catch (err: any) {
@@ -95,6 +149,7 @@ export const EngineAnalysis: React.FC = () => {
       }
       const res = await analyzeSequence(unitId, sequence);
       setResult(res);
+      setUploadedRecords(sequence);
     } catch (err: any) {
       setError(`JSON Payload Error: ${err.message}`);
     } finally {
@@ -102,9 +157,12 @@ export const EngineAnalysis: React.FC = () => {
     }
   };
 
-  // Prepare chart series from demo records
-  const currentDemoRecords = DEMO_TELEMETRY[selectedDemo] || [];
-  const chartData = currentDemoRecords.map((r: any, idx: number) => ({
+  // Prepare chart series from demo or uploaded records
+  const recordsForChart =
+    (activeMode === 'csv' || activeMode === 'json') && uploadedRecords.length > 0
+      ? uploadedRecords
+      : DEMO_TELEMETRY[selectedDemo] || [];
+  const chartData = recordsForChart.map((r: any, idx: number) => ({
     cycle: r.cycle || r.time_cycles || idx + 1,
     value: Number(r[activeChartSensor]) || 0,
   }));
@@ -227,45 +285,98 @@ export const EngineAnalysis: React.FC = () => {
               </div>
             )}
 
-            {/* Mode B: CSV File Ingestion */}
+            {/* Mode B: CSV / TXT File Ingestion */}
             {activeMode === 'csv' && (
               <div className="space-y-4 pt-1">
-                <div className="border-2 border-dashed border-[#E7E5E0] hover:border-[#F0448A]/50 rounded-xl p-6 text-center space-y-3 bg-[#F8F8F5]/60 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-white border border-[#E7E5E0] flex items-center justify-center mx-auto text-[#737373]">
-                    <Upload className="w-5 h-5 text-[#F0448A]" />
+                <label
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files?.[0]) {
+                      setFile(e.dataTransfer.files[0]);
+                      setError(null);
+                    }
+                  }}
+                  className={`border-2 border-dashed rounded-xl p-6 text-center space-y-3 transition-all block cursor-pointer select-none ${
+                    isDragging
+                      ? 'border-[#F0448A] bg-[#FDE8F1]/50 scale-[1.01]'
+                      : file
+                      ? 'border-[#15966A]/50 bg-[#F0FDF4]/40 hover:border-[#15966A]'
+                      : 'border-[#E7E5E0] hover:border-[#F0448A]/50 bg-[#F8F8F5]/60 hover:bg-[#F8F8F5]'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept=".csv,.txt"
+                    className="sr-only"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setFile(e.target.files[0]);
+                        setError(null);
+                      }
+                    }}
+                  />
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto transition-colors ${
+                    file ? 'bg-[#DCFCE7] text-[#15966A]' : 'bg-white border border-[#E7E5E0] text-[#737373]'
+                  }`}>
+                    {file ? <FileSpreadsheet className="w-5 h-5 text-[#15966A]" /> : <Upload className="w-5 h-5 text-[#F0448A]" />}
                   </div>
                   <div>
-                    <label className="cursor-pointer text-xs font-semibold text-[#171717] hover:text-[#F0448A] transition-colors">
-                      <span>Click to upload telemetry file</span>
-                      <input
-                        type="file"
-                        accept=".csv,.txt"
-                        className="sr-only"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) setFile(e.target.files[0]);
-                        }}
-                      />
-                    </label>
+                    <span className="text-xs font-semibold text-[#171717] hover:text-[#F0448A] transition-colors block">
+                      {file ? 'File Loaded — Click or drop to replace' : 'Click anywhere to browse or drop file here'}
+                    </span>
                     <p className="text-[11px] text-[#737373] mt-1">
-                      Supports whitespace-delimited or comma-separated C-MAPSS logs (.csv, .txt)
+                      Supports raw NASA C-MAPSS logs (.txt) or standard comma-separated (.csv)
                     </p>
                   </div>
                   {file && (
-                    <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-white border border-[#E7E5E0] font-mono text-xs text-[#171717]">
-                      <FileSpreadsheet className="w-3.5 h-3.5 text-[#15966A]" />
-                      <span>{file.name}</span>
+                    <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-md bg-white border border-[#E7E5E0] font-mono text-xs text-[#171717] shadow-sm">
+                      <span className="font-semibold text-[#15966A]">{file.name}</span>
                       <span className="text-[10px] text-[#737373]">({(file.size / 1024).toFixed(1)} KB)</span>
                     </div>
                   )}
+                </label>
+
+                {/* Quick Helper Actions */}
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleLoadSampleCSV}
+                    className="text-[11px] font-mono text-[#F0448A] hover:underline flex items-center space-x-1"
+                  >
+                    <span>⚡ Quick-load sample NASA log</span>
+                  </button>
+                  <a
+                    href="/sample_telemetry.csv"
+                    download="sample_telemetry.csv"
+                    className="text-[11px] font-mono text-[#737373] hover:text-[#171717] hover:underline"
+                  >
+                    Download template (.csv)
+                  </a>
                 </div>
 
                 <button
                   onClick={handleUploadCSV}
-                  disabled={loading || !file}
-                  className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg bg-[#171717] hover:bg-[#262626] text-white text-xs font-medium shadow-card transition-all disabled:opacity-50"
+                  disabled={loading}
+                  className={`w-full flex items-center justify-center space-x-2 py-3 rounded-lg text-xs font-medium shadow-card transition-all ${
+                    file
+                      ? 'bg-[#171717] hover:bg-[#262626] text-white cursor-pointer'
+                      : 'bg-[#F1EFEA] hover:bg-[#E7E5E0] text-[#171717] border border-[#E7E5E0] cursor-pointer'
+                  }`}
                 >
-                  <Activity className={`w-3.5 h-3.5 text-[#F0448A] ${loading ? 'animate-spin' : ''}`} />
-                  <span>{loading ? 'Processing File Ingestion...' : 'Analyze Uploaded Telemetry'}</span>
+                  <Activity className={`w-3.5 h-3.5 ${file ? 'text-[#F0448A]' : 'text-[#737373]'} ${loading ? 'animate-spin' : ''}`} />
+                  <span>
+                    {loading
+                      ? 'Processing Telemetry Ingestion...'
+                      : file
+                      ? `Analyze ${file.name}`
+                      : 'Upload or Select a File Above to Analyze'}
+                  </span>
                 </button>
               </div>
             )}
