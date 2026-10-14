@@ -1,0 +1,87 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Node dependencies & caches
+node_modules/
+frontend/node_modules/
+frontend/.vite/
+.npm/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE & Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Data files (Exclude raw datasets and large intermediate arrays)
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/embeddings/*
+!data/embeddings/.gitkeep
+
+# MLflow & Experiment Tracking local stores
+mlruns/
+.mlflow/
+
+# Generated logs & Temp files
+*.log
+scratch/
+tmp/
+
+# Model weights & Checkpoints
+# Exclude ad-hoc weights, but retain the frozen reproducible checkpoints & inference bundles (< 10 MB total)
+*.pt
+*.pth
+*.onnx
+*.joblib
+*.pkl
+!models/checkpoints/**/*.pt
+!models/inference_bundle/*.joblib
+!models/inference_bundle/*.json

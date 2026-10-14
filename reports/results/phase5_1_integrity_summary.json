@@ -1,0 +1,343 @@
+{
+  "audit_metadata": {
+    "phase": "5.1",
+    "audit_title": "Official Benchmark Integrity Audit",
+    "target_benchmark": "NASA C-MAPSS FD004 Official Test Set",
+    "evaluation_units": 248,
+    "audit_verdict": "PASS_WITH_QUALIFICATIONS",
+    "verdict_timestamp": "2026-10-14T03:05:00+05:30",
+    "qualifications": [
+      {
+        "issue": "Prognostic Accuracy vs Tabular Baselines",
+        "detail": "Under paired engine-level bootstrapping (B=2,000, seed=42), XGBoost exhibits a statistically significant advantage in MAE over FailureDNA (Regime-Aware) (delta = +2.8571 cycles, 95% CI: [+1.000, +4.614], p = 0.0010). Claims that FailureDNA universally outperforms conventional baselines on FD004 are scientifically invalid."
+      },
+      {
+        "issue": "NASA Score Uncertainty",
+        "detail": "While FailureDNA achieves lower point estimates on the NASA asymmetric score than XGBoost (8,049.31 vs 8,186.42; delta = -137.12) and Random Forest (8,382.76; delta = -333.46), the 95% paired bootstrap confidence intervals span zero ([-3759.86, +3088.25], p = 0.9220). The observed score advantage is within sampling variation and not statistically significant."
+      },
+      {
+        "issue": "NMI Confounding Removal Claims",
+        "detail": "The reported test NMI of 0.000143 is calculated across 29,436 sliding windows (W=50, s=1) that share 98% temporal overlap and vary in engine trajectory length from 19 to 303 cycles. Low NMI indicates low empirical association between discrete latent clusters and end-cycle regime clusters, but cannot be claimed as mathematical proof of causal separation or confounding removal."
+      },
+      {
+        "issue": "Preflight Audit Interpretation",
+        "detail": "Preflight SHA-256 checksum verification establishes that checkpoint weights were immutable on disk, but does not by itself prove zero data leakage. Code-level architectural enforcement (strict split isolation in preprocessors, evaluators, and regressors) guarantees zero test-set contamination."
+      }
+    ]
+  },
+  "artifact_manifest": {
+    "frozen_checkpoints": {
+      "failuredna_regime_aware": {
+        "path": "models/checkpoints/failuredna_regime_aware/best_failuredna_model.pt",
+        "sha256": "d18b6cd0abc2fadf12be18f6f1962707f3626e0a5054970147f50eb3620eb248",
+        "size_bytes": 2369441,
+        "fitted_split": "174 training engines (train_FD004.txt, 70% split, seed=42)",
+        "status": "LOADED_FROZEN",
+        "architecture": "TemporalTransformerEncoder (hidden_dim=128, n_heads=8, n_layers=4, dim_ff=256, masked_mean) + ProjectionHead (128->64)"
+      },
+      "failuredna_pooled": {
+        "path": "models/checkpoints/failuredna_pooled/best_failuredna_model.pt",
+        "sha256": "1e93ab9cbf31185838020c03c557b593f018b2b4aa2420d5b8c2732d288878ef",
+        "size_bytes": 2369441,
+        "fitted_split": "174 training engines (train_FD004.txt, 70% split, seed=42)",
+        "status": "LOADED_FROZEN",
+        "architecture": "TemporalTransformerEncoder (hidden_dim=128, n_heads=8, n_layers=4, dim_ff=256, masked_mean) + ProjectionHead (128->64)"
+      },
+      "failuredna_regime_conditioned": {
+        "path": "models/checkpoints/failuredna_regime_conditioned/best_failuredna_model.pt",
+        "sha256": "67b379d2d31a1cabe99cf5809cd5bcf7d606f3224ea9566da716f9c75c851fbb",
+        "size_bytes": 2372513,
+        "fitted_split": "174 training engines (train_FD004.txt, 70% split, seed=42)",
+        "status": "LOADED_FROZEN",
+        "architecture": "TemporalTransformerEncoder (input_dim=30, hidden_dim=128, n_heads=8, n_layers=4, dim_ff=256, masked_mean) + ProjectionHead (128->64)"
+      },
+      "failuredna_w30": {
+        "path": "models/checkpoints/failuredna_w30/best_failuredna_model.pt",
+        "sha256": "8aa450d5612542b0827d7f9d6b1d295ab7e06014175e1f7f0c779c68d431b791",
+        "size_bytes": 2369441,
+        "fitted_split": "174 training engines (train_FD004.txt, 70% split, seed=42)",
+        "status": "LOADED_FROZEN",
+        "architecture": "TemporalTransformerEncoder (W=30, hidden_dim=128, n_heads=8, n_layers=4, dim_ff=256, masked_mean) + ProjectionHead (128->64)"
+      }
+    },
+    "controls_and_downstream_probes": {
+      "random_encoder_control": {
+        "type": "Untrained Negative Control",
+        "status": "INITIALIZED_IN_MEMORY",
+        "seed": 42,
+        "fitted_split": "None (Untrained random projections)",
+        "downstream_probe": "StandardScaler + Ridge(alpha=10.0) fitted strictly on 174 training engine embeddings"
+      },
+      "failuredna_ridge_probes": {
+        "type": "Supervised Linear Probes",
+        "status": "FITTED_DURING_BENCHMARK",
+        "fitted_split": "174 training engines (train_FD004.txt, 70% split, seed=42)",
+        "test_data_used": "Strictly evaluation only; zero test data or labels used during fitting"
+      },
+      "tabular_baselines": {
+        "type": "Heuristic & Supervised Tree Baselines",
+        "status": "FITTED_DURING_BENCHMARK",
+        "fitted_split": "174 training engines (train_FD004.txt, 70% split, seed=42)",
+        "validation_usage": "37 validation engines used solely for early stopping in XGBoost; test telemetry withheld"
+      }
+    },
+    "data_leakage_audit_findings": {
+      "test_telemetry_used_for_fitting": false,
+      "test_rul_used_for_fitting": false,
+      "hyperparameter_tuning_on_test": false,
+      "threshold_selection_on_test": false,
+      "preflight_audit_scope": "Validates immutable state on disk; actual zero leakage is proven by code-level data frame isolation."
+    }
+  },
+  "nasa_score_audit": {
+    "sign_convention": {
+      "formula_error": "d_i = y_pred_i - y_true_i",
+      "early_prediction_condition": "d_i < 0 (y_pred < y_true: predicted failure earlier than actual)",
+      "early_penalty_formula": "s_i = exp(-d_i / 13) - 1",
+      "late_prediction_condition": "d_i >= 0 (y_pred >= y_true: predicted failure later than actual, dangerous)",
+      "late_penalty_formula": "s_i = exp(d_i / 10) - 1",
+      "asymmetry_ratio": "For equal absolute error |d|=20, late penalty is 6.389 vs early penalty 3.657 (1.75x more severe penalty for late prediction)."
+    },
+    "toy_example_verification": [
+      {
+        "case": "Early Prediction (d = -20)",
+        "y_true": 100.0,
+        "y_pred": 80.0,
+        "hand_calculated": 3.657419,
+        "code_calculated": 3.657419,
+        "status": "EXACT_MATCH"
+      },
+      {
+        "case": "Late Prediction (d = +20)",
+        "y_true": 100.0,
+        "y_pred": 120.0,
+        "hand_calculated": 6.389056,
+        "code_calculated": 6.389056,
+        "status": "EXACT_MATCH"
+      },
+      {
+        "case": "Exact Prediction (d = 0)",
+        "y_true": 50.0,
+        "y_pred": 50.0,
+        "hand_calculated": 0.0,
+        "code_calculated": 0.0,
+        "status": "EXACT_MATCH"
+      }
+    ],
+    "random_encoder_score_investigation": {
+      "total_nasa_score": 87465483.74,
+      "rmse": 48.8564,
+      "top_5_contributing_engines": [
+        {
+          "unit_id": 125,
+          "observed_cycles": 21,
+          "true_rul": 184.0,
+          "pred_rul": -44.017418,
+          "diff": -228.017418,
+          "penalty": 41441830.41,
+          "pct_of_total": 47.38
+        },
+        {
+          "unit_id": 10,
+          "observed_cycles": 23,
+          "true_rul": 162.0,
+          "pred_rul": -59.186897,
+          "diff": -221.186897,
+          "penalty": 24504727.87,
+          "pct_of_total": 28.02
+        },
+        {
+          "unit_id": 204,
+          "observed_cycles": 19,
+          "true_rul": 151.0,
+          "pred_rul": -63.551353,
+          "diff": -214.551353,
+          "penalty": 14708709.82,
+          "pct_of_total": 16.82
+        },
+        {
+          "unit_id": 19,
+          "observed_cycles": 24,
+          "true_rul": 194.0,
+          "pred_rul": -4.193398,
+          "diff": -198.193398,
+          "penalty": 4179264.44,
+          "pct_of_total": 4.78
+        },
+        {
+          "unit_id": 141,
+          "observed_cycles": 19,
+          "true_rul": 130.0,
+          "pred_rul": -56.728661,
+          "diff": -186.728661,
+          "penalty": 1730191.02,
+          "pct_of_total": 1.98
+        }
+      ],
+      "cumulative_top_5_pct": 98.97,
+      "root_cause_explanation": "All top contributing engines are short engines (T_obs between 19 and 24 cycles) with high true RUL (130-194 cycles). Because random projection does not learn temporal continuity, edge-padding repeated values at the left boundary produced out-of-distribution embeddings. An unclipped linear Ridge probe extrapolated these embeddings into negative predicted RULs (-44 to -64). The resulting large negative errors (diff < -214) were magnified exponentially by exp(|d|/13)-1, generating tens of millions of penalty points per engine. The 87.5M score is mathematically exact per the standard NASA formula and is not an implementation defect."
+    }
+  },
+  "paired_uncertainty_analysis": {
+    "resamples": 2000,
+    "seed": 42,
+    "unit": "Engine-Level (N=248)",
+    "results": [
+      {
+        "comparison": "FailureDNA (Regime-Aware) vs XGBoost",
+        "delta_mae": {
+          "point": 2.8571,
+          "ci_95": [0.9999, 4.6137],
+          "p_val": 0.0010,
+          "interpretation": "XGBoost has a statistically significant advantage in MAE."
+        },
+        "delta_rmse": {
+          "point": 1.2827,
+          "ci_95": [-1.1466, 3.5879],
+          "p_val": 0.2860,
+          "interpretation": "Not statistically significant (95% CI spans zero)."
+        },
+        "delta_nasa": {
+          "point": -137.12,
+          "ci_95": [-3759.86, 3088.25],
+          "p_val": 0.9220,
+          "interpretation": "Not statistically significant (95% CI spans zero)."
+        }
+      },
+      {
+        "comparison": "FailureDNA (Regime-Conditioned) vs XGBoost",
+        "delta_mae": {
+          "point": 1.8756,
+          "ci_95": [0.2444, 3.4271],
+          "p_val": 0.0270,
+          "interpretation": "XGBoost has a statistically significant advantage in MAE."
+        },
+        "delta_rmse": {
+          "point": 1.0816,
+          "ci_95": [-0.8077, 2.8142],
+          "p_val": 0.2540,
+          "interpretation": "Not statistically significant (95% CI spans zero)."
+        },
+        "delta_nasa": {
+          "point": -495.43,
+          "ci_95": [-3459.38, 1917.91],
+          "p_val": 0.7090,
+          "interpretation": "Not statistically significant (95% CI spans zero)."
+        }
+      },
+      {
+        "comparison": "FailureDNA (Regime-Aware) vs Random Forest",
+        "delta_mae": {
+          "point": 2.1385,
+          "ci_95": [0.1963, 3.9311],
+          "p_val": 0.0340,
+          "interpretation": "Random Forest has a statistically significant advantage in MAE."
+        },
+        "delta_rmse": {
+          "point": 0.5922,
+          "ci_95": [-1.8051, 2.8252],
+          "p_val": 0.6250,
+          "interpretation": "Not statistically significant (95% CI spans zero)."
+        },
+        "delta_nasa": {
+          "point": -333.46,
+          "ci_95": [-4276.87, 2865.81],
+          "p_val": 0.8560,
+          "interpretation": "Not statistically significant (95% CI spans zero)."
+        }
+      },
+      {
+        "comparison": "FailureDNA (Regime-Aware) vs Linear Ridge",
+        "delta_mae": {
+          "point": -1.5522,
+          "ci_95": [-3.1484, 0.0286],
+          "p_val": 0.0560,
+          "interpretation": "Not statistically significant at alpha=0.05 (CI includes zero)."
+        },
+        "delta_rmse": {
+          "point": -1.7414,
+          "ci_95": [-3.5119, 0.1494],
+          "p_val": 0.0650,
+          "interpretation": "Not statistically significant at alpha=0.05 (CI includes zero)."
+        },
+        "delta_nasa": {
+          "point": -2038.87,
+          "ci_95": [-6039.50, 1337.33],
+          "p_val": 0.2670,
+          "interpretation": "Not statistically significant (95% CI spans zero)."
+        }
+      },
+      {
+        "comparison": "FailureDNA (Regime-Conditioned) vs FailureDNA (Regime-Aware)",
+        "delta_mae": {
+          "point": -0.9815,
+          "ci_95": [-2.3625, 0.3761],
+          "p_val": 0.1560,
+          "interpretation": "Difference between FailureDNA variants is not statistically significant."
+        },
+        "delta_rmse": {
+          "point": -0.2011,
+          "ci_95": [-1.5814, 1.2721],
+          "p_val": 0.7790,
+          "interpretation": "Not statistically significant."
+        },
+        "delta_nasa": {
+          "point": -358.32,
+          "ci_95": [-2038.13, 1255.87],
+          "p_val": 0.6820,
+          "interpretation": "Not statistically significant."
+        }
+      }
+    ]
+  },
+  "signature_and_nmi_audit": {
+    "reported_test_nmi": 0.00014272270143784517,
+    "evaluated_test_windows": 29436,
+    "sampling_units": "Sliding temporal windows (window_size=50, stride=1) across 248 test engine trajectories",
+    "shannon_entropy": {
+      "mutual_information_nats": 0.00020461,
+      "mutual_information_bits": 0.0002952,
+      "h_signatures_nats": 1.098495,
+      "h_regimes_nats": 1.768782,
+      "nmi_arithmetic": 0.00014272,
+      "nmi_geometric": 0.00014679
+    },
+    "methodological_limitations": [
+      "Sliding windows with stride 1 share 49 out of 50 cycles (98% temporal overlap), violating the independent-observation assumption of mutual information.",
+      "Engine trajectories have unequal lengths (19 to 303 cycles), meaning longer trajectories contribute up to 15x more samples to the joint distribution.",
+      "Regime labels are evaluated at the instantaneous terminal cycle of the window, whereas the representation embedding pools over all 50 cycles.",
+      "Unsupervised cluster identities represent latent degradation patterns, not ground-truth verified physical component failures (e.g., Fan vs HPC)."
+    ],
+    "calibrated_statement": "The measured NMI of 0.000143 confirms very low empirical association between discrete latent signature cluster IDs and operating regime cluster IDs across test windows. This indicates that contrastive pretraining does not collapse into regime classification. However, this does not constitute mathematical proof of causal separation or confounding removal."
+  },
+  "configuration_and_table_audit": {
+    "configuration_disambiguation": {
+      "Regime-Aware + Ridge": {
+        "model_key": "failuredna_regime_aware_ridge",
+        "checkpoint": "models/checkpoints/failuredna_regime_aware/best_failuredna_model.pt",
+        "prediction_column": "pred_failuredna_ridge",
+        "input_features": 24,
+        "feature_composition": "3 operating settings + 21 sensors normalized per regime cluster"
+      },
+      "Regime-Conditioned + Ridge": {
+        "model_key": "failuredna_regime_conditioned_ridge",
+        "checkpoint": "models/checkpoints/failuredna_regime_conditioned/best_failuredna_model.pt",
+        "prediction_column": "pred_failuredna_regime_conditioned_ridge",
+        "input_features": 30,
+        "feature_composition": "3 operating settings + 21 sensors normalized per regime cluster + 6 one-hot regime indicator channels"
+      }
+    },
+    "table_consistency_check": "VERIFIED_PERFECT_MATCH",
+    "reproduced_metrics_summary": {
+      "operating_condition_only": { "mae": 46.4206, "rmse": 54.5485, "nasa": 139041.98 },
+      "linear_ridge": { "mae": 24.9726, "rmse": 32.1038, "nasa": 10088.17 },
+      "random_forest": { "mae": 21.2819, "rmse": 29.7701, "nasa": 8382.76 },
+      "xgboost": { "mae": 20.5633, "rmse": 29.0796, "nasa": 8186.42 },
+      "failuredna_regime_aware_ridge": { "mae": 23.4204, "rmse": 30.3623, "nasa": 8049.31 },
+      "failuredna_regime_conditioned_ridge": { "mae": 22.4389, "rmse": 30.1612, "nasa": 7690.99 },
+      "failuredna_w30_ridge": { "mae": 26.0953, "rmse": 32.9133, "nasa": 10209.21 },
+      "failuredna_pooled_ridge": { "mae": 33.4109, "rmse": 41.4596, "nasa": 35253.88 },
+      "random_encoder_ridge": { "mae": 29.8761, "rmse": 48.8564, "nasa": 87465483.74 }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+# FailureDNA Model Architecture Configuration
+
+encoder:
+  input_dim: 24          # 3 operating settings + 21 sensors
+  window_size: 50        # Temporal context length W (cycles)
+  hidden_dim: 128        # Transformer d_model
+  n_heads: 8             # Number of self-attention heads
+  n_layers: 4            # Number of Transformer encoder layers
+  dim_feedforward: 256   # FFN hidden dimension
+  dropout: 0.1           # Dropout rate
+  pooling: "masked_mean" # Pooling method: 'masked_mean', 'attention', 'last'
+  rep_dim: 128           # Representation embedding dimension
+
+projection_head:
+  input_dim: 128         # Matches encoder rep_dim
+  hidden_dim: 128        # Intermediate projection dimension
+  output_dim: 64         # Latent projection dimension for InfoNCE
+  dropout: 0.1
+
+loss:
+  name: "nt_xent"        # Normalized Temperature-scaled Cross Entropy (InfoNCE)
+  temperature: 0.1       # Temperature hyperparameter tau
+
+augmentations:
+  jitter_sigma: 0.015    # Small Gaussian noise std
+  sensor_mask_prob: 0.15 # Probability of masking sensor channels
+  max_masked_sensors: 3  # Maximum sensor channels to mask per window
+  temp_mask_ratio: 0.15  # Maximum fraction of time steps to mask
+  scale_min: 0.95        # Magnitude scaling minimum
+  scale_max: 1.05        # Magnitude scaling maximum
+
+supervised_head:
+  hidden_dim: 64
+  dropout: 0.1
+  output_dim: 1          # Scalar RUL prediction

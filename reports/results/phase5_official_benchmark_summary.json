@@ -1,0 +1,406 @@
+{
+  "benchmark": "NASA C-MAPSS FD004 Official Test Set",
+  "dataset_metadata": {
+    "test_engines": 248,
+    "total_test_observations": 41214,
+    "rul_label_count": 248,
+    "short_engines_count": 20,
+    "rul_ground_truth_stats": {
+      "min": 6.0,
+      "mean": 86.5524193548387,
+      "median": 88.0,
+      "max": 195.0,
+      "std": 54.52379321364928
+    }
+  },
+  "preflight_audit": {
+    "status": "PASSED",
+    "frozen_checkpoints": {
+      "failuredna_regime_aware": {
+        "path": "models\\checkpoints\\failuredna_regime_aware\\best_failuredna_model.pt",
+        "sha256": "d18b6cd0abc2fadf12be18f6f1962707f3626e0a5054970147f50eb3620eb248",
+        "size_bytes": 2369441
+      },
+      "failuredna_pooled": {
+        "path": "models\\checkpoints\\failuredna_pooled\\best_failuredna_model.pt",
+        "sha256": "1e93ab9cbf31185838020c03c557b593f018b2b4aa2420d5b8c2732d288878ef",
+        "size_bytes": 2369441
+      },
+      "failuredna_regime_conditioned": {
+        "path": "models\\checkpoints\\failuredna_regime_conditioned\\best_failuredna_model.pt",
+        "sha256": "67b379d2d31a1cabe99cf5809cd5bcf7d606f3224ea9566da716f9c75c851fbb",
+        "size_bytes": 2372513
+      },
+      "failuredna_w30": {
+        "path": "models\\checkpoints\\failuredna_w30\\best_failuredna_model.pt",
+        "sha256": "8aa450d5612542b0827d7f9d6b1d295ab7e06014175e1f7f0c779c68d431b791",
+        "size_bytes": 2369441
+      }
+    },
+    "zero_leakage_verified": true,
+    "state_3_hazard_audit": {
+      "description": "Model-based reciprocal operational-exit hazard estimate (1689 / 51 = 33.12 cycles), under constant hazard and terminal censoring assumptions. Strictly distinguished from the observed mean duration of operational-exit episodes (1.98 cycles).",
+      "risk_set_cycles": 1689,
+      "operational_exits": 51,
+      "reciprocal_hazard": 33.12,
+      "observed_operational_exit_mean_dwell": 1.98,
+      "observed_terminal_failure_mean_dwell": 52.23,
+      "pooled_absorbing_mean_dwell": 20.98
+    }
+  },
+  "models_evaluated": {
+    "operating_condition_only": {
+      "model_name": "Operating Condition Only Baseline",
+      "category": "Baseline",
+      "features": "Setting Columns Mean",
+      "fit_time_sec": 0.030224900001485366,
+      "mae": 46.4206490670481,
+      "rmse": 54.548487993346015,
+      "r2": -0.0009060401189915357,
+      "nasa_score": 139041.98263141123,
+      "mae_ci_95": [
+        42.75933516179362,
+        50.16262849453957
+      ],
+      "rmse_ci_95": [
+        51.39130033838384,
+        57.9036443915065
+      ],
+      "r2_ci_95": [
+        -0.03541087800995371,
+        0.019767682123466388
+      ],
+      "nasa_ci_95": [
+        104173.96572740517,
+        183022.1640283283
+      ]
+    },
+    "linear_ridge": {
+      "model_name": "Linear / Ridge Regression (Window Stats)",
+      "category": "Baseline",
+      "features": "Handcrafted Summary Stats (96)",
+      "fit_time_sec": 0.12354190000041854,
+      "mae": 24.972648282204904,
+      "rmse": 32.10377020767756,
+      "r2": 0.6533110878360524,
+      "nasa_score": 10088.171553126802,
+      "mae_ci_95": [
+        22.578065869116013,
+        27.623331201076507
+      ],
+      "rmse_ci_95": [
+        29.225700457199533,
+        34.96081818242178
+      ],
+      "r2_ci_95": [
+        0.5917723711938452,
+        0.704243360594048
+      ],
+      "nasa_ci_95": [
+        6162.8244331300675,
+        15018.166004020912
+      ]
+    },
+    "random_forest": {
+      "model_name": "Random Forest (Window Stats)",
+      "category": "Baseline",
+      "features": "Handcrafted Summary Stats (96)",
+      "fit_time_sec": 44.80284699999902,
+      "mae": 21.28187575606218,
+      "rmse": 29.770126894623708,
+      "r2": 0.7018812801982759,
+      "nasa_score": 8382.762586536963,
+      "mae_ci_95": [
+        18.84004139670752,
+        23.923561132958252
+      ],
+      "rmse_ci_95": [
+        26.77796406085172,
+        32.8054987820184
+      ],
+      "r2_ci_95": [
+        0.6477353138760842,
+        0.7490256553496283
+      ],
+      "nasa_ci_95": [
+        5628.666634044422,
+        12437.291964338285
+      ]
+    },
+    "xgboost": {
+      "model_name": "XGBoost (Window Stats)",
+      "category": "Baseline",
+      "features": "Handcrafted Summary Stats (96)",
+      "fit_time_sec": 4.548198100004811,
+      "mae": 20.56330427046745,
+      "rmse": 29.0795847712346,
+      "r2": 0.7155510874581356,
+      "nasa_score": 8186.424429981707,
+      "mae_ci_95": [
+        18.170794413070524,
+        23.110533573454425
+      ],
+      "rmse_ci_95": [
+        26.041840740103293,
+        32.01954981342303
+      ],
+      "r2_ci_95": [
+        0.6613514184536283,
+        0.7617057925644664
+      ],
+      "nasa_ci_95": [
+        5036.251632072719,
+        12535.16469780316
+      ]
+    },
+    "failuredna_regime_aware_ridge": {
+      "model_name": "FailureDNA (Regime-Aware) + Ridge",
+      "category": "FailureDNA Representation",
+      "features": "FailureDNA Latent Embedding (128)",
+      "fit_time_sec": 0.14827820000209613,
+      "mae": 23.42040781820974,
+      "rmse": 30.362323995226543,
+      "r2": 0.6899027630770205,
+      "nasa_score": 8049.305523893854,
+      "mae_ci_95": [
+        21.063117809449473,
+        26.02699715821974
+      ],
+      "rmse_ci_95": [
+        27.57902112889913,
+        33.045452355931616
+      ],
+      "r2_ci_95": [
+        0.6333818380101405,
+        0.7368726436770289
+      ],
+      "nasa_ci_95": [
+        5542.494825191784,
+        11113.1667709752
+      ]
+    },
+    "failuredna_regime_aware_rf": {
+      "model_name": "FailureDNA (Regime-Aware) + Random Forest",
+      "category": "FailureDNA Representation",
+      "features": "FailureDNA Latent Embedding (128)",
+      "fit_time_sec": 87.27451129999827,
+      "mae": 28.0126940087567,
+      "rmse": 35.1668962406065,
+      "r2": 0.5839974851646685,
+      "nasa_score": 18640.092919260882,
+      "mae_ci_95": [
+        25.38841518622535,
+        30.686374242285005
+      ],
+      "rmse_ci_95": [
+        32.094953889673434,
+        38.116522807387135
+      ],
+      "r2_ci_95": [
+        0.5151307274920206,
+        0.6416396340324713
+      ],
+      "nasa_ci_95": [
+        9879.681632129159,
+        34999.962647681066
+      ]
+    },
+    "failuredna_regime_aware_xgb": {
+      "model_name": "FailureDNA (Regime-Aware) + XGBoost",
+      "category": "FailureDNA Representation",
+      "features": "FailureDNA Latent Embedding (128)",
+      "fit_time_sec": 6.633255399996415,
+      "mae": 26.26064335723077,
+      "rmse": 33.65346662257095,
+      "r2": 0.6190328837782468,
+      "nasa_score": 12777.348483033624,
+      "mae_ci_95": [
+        23.740559782039735,
+        28.878532661978273
+      ],
+      "rmse_ci_95": [
+        30.57183850940717,
+        36.54465422936749
+      ],
+      "r2_ci_95": [
+        0.5562789494298901,
+        0.6708836514820337
+      ],
+      "nasa_ci_95": [
+        8415.420287952127,
+        18469.644374593096
+      ]
+    },
+    "random_encoder_control": {
+      "model_name": "Matched Random Encoder (Untrained) + Ridge",
+      "category": "Negative Control",
+      "features": "Random Projection Embedding (128)",
+      "fit_time_sec": 44.86444140000094,
+      "mae": 29.87612364369054,
+      "rmse": 48.8563778716875,
+      "r2": 0.19708345357500234,
+      "nasa_score": 87465483.74139214,
+      "mae_ci_95": [
+        25.87215329062554,
+        34.908759069442745
+      ],
+      "rmse_ci_95": [
+        40.09057069569745,
+        57.892541766058216
+      ],
+      "r2_ci_95": [
+        -0.1259751798491074,
+        0.4381141751650742
+      ],
+      "nasa_ci_95": [
+        6807445.150075144,
+        213129041.38007024
+      ]
+    },
+    "failuredna_pooled_ridge": {
+      "model_name": "FailureDNA (Pooled Robust) + Ridge",
+      "category": "Ablation",
+      "features": "Pooled Robust Latent Embedding (128)",
+      "fit_time_sec": 0.0,
+      "mae": 33.41094887641169,
+      "rmse": 41.45958886031791,
+      "r2": 0.421800305297097,
+      "nasa_score": 35253.8843872649,
+      "mae_ci_95": [
+        30.62232543114693,
+        36.566531271319235
+      ],
+      "rmse_ci_95": [
+        38.45172395855607,
+        44.7742976463468
+      ],
+      "r2_ci_95": [
+        0.33966929431882753,
+        0.4861638007035946
+      ],
+      "nasa_ci_95": [
+        23739.59020655822,
+        51349.495908154575
+      ]
+    },
+    "failuredna_regime_conditioned_ridge": {
+      "model_name": "FailureDNA (Regime-Conditioned) + Ridge",
+      "category": "Ablation",
+      "features": "Regime-Conditioned Embedding (128)",
+      "fit_time_sec": 0.0,
+      "mae": 22.438877690222956,
+      "rmse": 30.16120972447914,
+      "r2": 0.6939972080727826,
+      "nasa_score": 7690.990506737773,
+      "mae_ci_95": [
+        19.99173005550138,
+        24.996853067798
+      ],
+      "rmse_ci_95": [
+        27.226311261666705,
+        32.93951887120785
+      ],
+      "r2_ci_95": [
+        0.6409814188996561,
+        0.7380286882840107
+      ],
+      "nasa_ci_95": [
+        5184.338169855708,
+        10441.570594170402
+      ]
+    },
+    "failuredna_w30_ridge": {
+      "model_name": "FailureDNA (W=30) + Ridge",
+      "category": "Ablation",
+      "features": "W=30 Latent Embedding (128)",
+      "fit_time_sec": 0.0,
+      "mae": 26.095347496771044,
+      "rmse": 32.913327438876124,
+      "r2": 0.6356057992020688,
+      "nasa_score": 10209.2071776354,
+      "mae_ci_95": [
+        23.62437238923965,
+        28.611088996548805
+      ],
+      "rmse_ci_95": [
+        30.062800846498693,
+        35.558959399128014
+      ],
+      "r2_ci_95": [
+        0.5773737171915443,
+        0.6881223010005318
+      ],
+      "nasa_ci_95": [
+        7247.673962482196,
+        13529.525253386772
+      ]
+    }
+  },
+  "signature_discovery_test_telemetry": {
+    "cluster_order_mapping": {
+      "2": 0,
+      "3": 1,
+      "0": 2,
+      "1": 3
+    },
+    "test_fleet_occupancy": {
+      "State_0": {
+        "count": 14460,
+        "percentage": 49.123522217692624
+      },
+      "State_1": {
+        "count": 10684,
+        "percentage": 36.29569234950401
+      },
+      "State_2": {
+        "count": 2295,
+        "percentage": 7.7965756216877296
+      },
+      "State_3": {
+        "count": 1997,
+        "percentage": 6.784209811115641
+      }
+    },
+    "final_window_state_distribution": {
+      "0": 85,
+      "1": 77,
+      "2": 41,
+      "3": 45
+    },
+    "test_transition_matrix": [
+      [
+        0.9692521739130435,
+        0.01676521739130435,
+        0.007165217391304348,
+        0.006817391304347826
+      ],
+      [
+        0.021683793721127557,
+        0.9719053455265391,
+        0.004713868200245121,
+        0.0016969925520882436
+      ],
+      [
+        0.0354924578527063,
+        0.01774622892635315,
+        0.9392191659272404,
+        0.0075421472937000885
+      ],
+      [
+        0.03278688524590164,
+        0.005122950819672131,
+        0.007172131147540984,
+        0.9549180327868853
+      ]
+    ],
+    "test_empirical_mean_dwell_times": {
+      "0": 28.427165354330707,
+      "1": 28.56417112299465,
+      "2": 12.893258426966293,
+      "3": 15.015037593984962
+    },
+    "test_forward_transition_ratio": 0.5461139896373057,
+    "test_signature_regime_nmi": 0.00014272270143784517
+  },
+  "timestamp": "2026-10-14 01:01:52"
+}

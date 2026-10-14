@@ -1,0 +1,91 @@
+{
+  "audit_metadata": {
+    "phase": "5.2",
+    "title": "Statistical Inference and Reporting Correction Addendum",
+    "benchmark": "NASA C-MAPSS FD004 Official Test Set (N=248 Engines)",
+    "timestamp": "2026-10-14T06:18:00+05:30",
+    "resampling_protocol": {
+      "resampling_unit": "Engine-Level (N=248)",
+      "resamples": 2000,
+      "seed": 42,
+      "difference_convention": "Delta = Metric(Model A) - Metric(Model B)",
+      "ci_method": "Empirical Percentile Bootstrap (2.5th and 97.5th percentiles)"
+    }
+  },
+  "multiple_comparisons_audit": {
+    "families_defined": [
+      {
+        "family_name": "Per-Metric Comparison Families",
+        "hypotheses_count": 5,
+        "description": "5 pairwise model contrasts evaluated separately for MAE, RMSE, and NASA score",
+        "correction_method": "Holm-Bonferroni step-down procedure"
+      },
+      {
+        "family_name": "Primary Baseline Benchmark Family",
+        "hypotheses_count": 3,
+        "description": "Pre-specified comparisons of proposed FailureDNA (Regime-Aware) against 3 established baselines (XGBoost, Random Forest, Linear Ridge)",
+        "correction_method": "Holm-Bonferroni step-down procedure"
+      },
+      {
+        "family_name": "Omnibus Family",
+        "hypotheses_count": 15,
+        "description": "All 15 hypothesis tests across all 5 pairwise model contrasts and all 3 metrics",
+        "correction_method": "Holm-Bonferroni step-down procedure"
+      }
+    ],
+    "key_findings": [
+      {
+        "comparison": "FailureDNA (Regime-Aware) vs XGBoost in MAE",
+        "raw_p_value": 0.001,
+        "holm_metric_p_value": 0.005,
+        "holm_primary3_p_value": 0.003,
+        "holm_omnibus_p_value": 0.015,
+        "status": "STATISTICALLY_SIGNIFICANT",
+        "interpretation": "XGBoost advantage in MAE remains statistically significant across all multiple-comparison family corrections (adjusted p <= 0.015)."
+      },
+      {
+        "comparison": "FailureDNA (Regime-Conditioned) vs XGBoost in MAE",
+        "raw_p_value": 0.027,
+        "holm_metric_p_value": 0.108,
+        "holm_omnibus_p_value": 0.378,
+        "status": "NOT_SIGNIFICANT_AFTER_ADJUSTMENT",
+        "interpretation": "Nominally significant at alpha=0.05 (p=0.0270), but loses statistical significance once adjusted for multiple comparisons (adjusted p=0.1080)."
+      },
+      {
+        "comparison": "FailureDNA (Regime-Aware) vs Random Forest in MAE",
+        "raw_p_value": 0.034,
+        "holm_metric_p_value": 0.108,
+        "holm_primary3_p_value": 0.068,
+        "holm_omnibus_p_value": 0.442,
+        "status": "NOT_SIGNIFICANT_AFTER_ADJUSTMENT",
+        "interpretation": "Nominally significant (p=0.0340), but not statistically significant after Holm correction in any family (adjusted p >= 0.0680)."
+      },
+      {
+        "comparison": "All RMSE and NASA Score Comparisons",
+        "status": "NOT_STATISTICALLY_SIGNIFICANT",
+        "interpretation": "All 95% bootstrap confidence intervals include zero. No model demonstrates statistically verifiable superiority on RMSE or NASA score."
+      }
+    ]
+  },
+  "nasa_score_uncertainty_analysis": {
+    "fleet_total_failuredna": 8049.305523893856,
+    "fleet_total_xgboost": 8186.4244299817055,
+    "point_difference": -137.11890608785023,
+    "per_engine_penalty_diff_stats": {
+      "mean": -0.5528988148703639,
+      "median": 0.6390535771245635,
+      "std": 108.1568386630938,
+      "skewness": -1.4674489937535244,
+      "kurtosis": 39.37829066411217,
+      "min": -908.3837321386133,
+      "max": 851.9866801912543
+    },
+    "instability_mechanism": "The NASA metric's exponential penalty creates heavy-tailed, highly skewed per-engine score contributions. A single engine error swing of 30 cycles changes the penalty by hundreds of points. In bootstrap resampling, the presence or absence of top outlier engines (Unit 54: -908 pts, Unit 153: +852 pts) causes the total fleet score difference to swing between -3,760 and +3,088 points. The confidence interval includes zero, confirming that point-estimate rankings on NASA score cannot support claims of statistical superiority."
+  },
+  "reporting_distinctions": {
+    "point_estimate_ranking": "FailureDNA (Regime-Conditioned) ranks 1st in NASA score (7,691), FailureDNA (Regime-Aware) ranks 2nd (8,049), XGBoost ranks 3rd (8,186). On MAE and RMSE, XGBoost ranks 1st (20.56, 29.08).",
+    "nominal_statistical_evidence": "Nominal unadjusted tests show p < 0.05 for XGBoost vs FailureDNA in MAE (p=0.0010 and p=0.0270) and RF vs FailureDNA in MAE (p=0.0340).",
+    "multiplicity_adjusted_evidence": "After Holm-Bonferroni correction, only XGBoost's MAE superiority over FailureDNA (Regime-Aware) is statistically verified (adjusted p=0.0050). No other contrast is statistically significant.",
+    "uncertainty_and_limitations": "Wide paired confidence intervals in NASA score (spanning zero) reflect heavy-tailed metric instability rather than definitive parity or superiority."
+  }
+}

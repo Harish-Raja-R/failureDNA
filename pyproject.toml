@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "failuredna"
+version = "0.1.0"
+description = "Self-Supervised Discovery of Failure Signatures from Multivariate Industrial Time-Series"
+authors = [
+    { name = "FailureDNA Research Team" }
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0.0",
+    "scipy>=1.14.0",
+    "pandas>=2.2.0",
+    "scikit-learn>=1.5.0",
+    "torch>=2.4.0",
+    "xgboost>=2.1.0",
+    "pyyaml>=6.0.2",
+    "pydantic>=2.8.0",
+    "fastapi>=0.112.0",
+    "uvicorn>=0.30.0",
+    "tqdm>=4.66.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short -p no:dash"

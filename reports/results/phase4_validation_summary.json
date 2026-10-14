@@ -1,0 +1,954 @@
+{
+  "metadata": {
+    "phase": "Phase 4: Scientific Validation & Failure Signature Discovery",
+    "date": "October 2026",
+    "device": "cpu",
+    "seeds_evaluated": [
+      42,
+      43,
+      44
+    ],
+    "optimal_k_clusters": 4
+  },
+  "matched_negative_control_results": [
+    {
+      "Model_Type": "Handcrafted Summary Stats",
+      "Preprocessing": "Regime-Aware",
+      "Probe": "Ridge",
+      "RMSE": 25.884372784608956,
+      "MAE": 18.93431136449178,
+      "R2": 0.5879952674683218,
+      "NASA_Score": 47152.22455565113,
+      "Spearman_Rank_r": NaN
+    },
+    {
+      "Model_Type": "Handcrafted Summary Stats",
+      "Preprocessing": "Regime-Aware",
+      "Probe": "Random Forest",
+      "RMSE": 19.288932732321918,
+      "MAE": 14.104700685087852,
+      "R2": 0.7712066960028066,
+      "NASA_Score": 16810.513789446813,
+      "Spearman_Rank_r": NaN
+    },
+    {
+      "Model_Type": "FailureDNA (Pretrained SSL)",
+      "Preprocessing": "Pooled Robust",
+      "Probe": "Ridge",
+      "RMSE": 24.38306048917555,
+      "MAE": 19.921078720092773,
+      "R2": 0.6344023925126041,
+      "NASA_Score": 30843.004570048986,
+      "Spearman_Rank_r": 0.4648124595222013,
+      "Effective_Dim": 1.756752610206604
+    },
+    {
+      "Model_Type": "FailureDNA (Pretrained SSL)",
+      "Preprocessing": "Pooled Robust",
+      "Probe": "Random Forest",
+      "RMSE": 28.78930658999181,
+      "MAE": 22.700988653501614,
+      "R2": 0.4903297051122595,
+      "NASA_Score": 58327.15934251975,
+      "Spearman_Rank_r": 0.4648124595222013,
+      "Effective_Dim": 1.756752610206604
+    },
+    {
+      "Model_Type": "FailureDNA (Pretrained SSL)",
+      "Preprocessing": "Regime-Aware",
+      "Probe": "Ridge",
+      "RMSE": 21.228833346863716,
+      "MAE": 17.152994365692138,
+      "R2": 0.7228727907610454,
+      "NASA_Score": 13457.958683994117,
+      "Spearman_Rank_r": 0.6621291234478109,
+      "Effective_Dim": 4.642806529998779
+    },
+    {
+      "Model_Type": "FailureDNA (Pretrained SSL)",
+      "Preprocessing": "Regime-Aware",
+      "Probe": "Random Forest",
+      "RMSE": 24.2178133273054,
+      "MAE": 19.41817312444854,
+      "R2": 0.6393410055638533,
+      "NASA_Score": 24145.5914809027,
+      "Spearman_Rank_r": 0.6621291234478109,
+      "Effective_Dim": 4.642806529998779
+    },
+    {
+      "Model_Type": "FailureDNA (Pretrained SSL)",
+      "Preprocessing": "Regime-Conditioned",
+      "Probe": "Ridge",
+      "RMSE": 22.210802168529458,
+      "MAE": 18.024314483006794,
+      "R2": 0.6966420361708754,
+      "NASA_Score": 20688.26526912133,
+      "Spearman_Rank_r": 0.6229620590055951,
+      "Effective_Dim": 4.162863254547119
+    },
+    {
+      "Model_Type": "FailureDNA (Pretrained SSL)",
+      "Preprocessing": "Regime-Conditioned",
+      "Probe": "Random Forest",
+      "RMSE": 25.124215419655698,
+      "MAE": 19.555880189199243,
+      "R2": 0.611838971588603,
+      "NASA_Score": 49152.81019823102,
+      "Spearman_Rank_r": 0.6229620590055951,
+      "Effective_Dim": 4.162863254547119
+    },
+    {
+      "Model_Type": "Matched Random Encoder (Untrained)",
+      "Preprocessing": "Pooled Robust",
+      "Probe": "Ridge",
+      "RMSE": 21.767653195663673,
+      "RMSE_std": 0.10315308143196535,
+      "MAE": 18.215441137949625,
+      "R2": 0.7086199022190756,
+      "NASA_Score": 14227.947701300565,
+      "Spearman_Rank_r": 0.35983920731269886,
+      "Effective_Dim": 1.1880276600519817
+    },
+    {
+      "Model_Type": "Matched Random Encoder (Untrained)",
+      "Preprocessing": "Regime-Aware",
+      "Probe": "Ridge",
+      "RMSE": 22.026164953332955,
+      "RMSE_std": 1.447692514253885,
+      "MAE": 17.865844797558253,
+      "R2": 0.7003758874564775,
+      "NASA_Score": 15629.00558219971,
+      "Spearman_Rank_r": 0.7084060045276613,
+      "Effective_Dim": 2.514270464579264
+    },
+    {
+      "Model_Type": "Matched Random Encoder (Untrained)",
+      "Preprocessing": "Regime-Conditioned",
+      "Probe": "Ridge",
+      "RMSE": 20.436732063968552,
+      "RMSE_std": 2.908355986781953,
+      "MAE": 15.852577336629233,
+      "R2": 0.7379661755946799,
+      "NASA_Score": 20768.345788192808,
+      "Spearman_Rank_r": 0.7085592254870413,
+      "Effective_Dim": 2.2682601610819497
+    }
+  ],
+  "signature_discovery": {
+    "kmeans_diagnostics_by_k": {
+      "3": {
+        "n_clusters": 3,
+        "silhouette_score": 0.27344799041748047,
+        "davies_bouldin_index": 1.4671560860828332,
+        "calinski_harabasz_score": 415.5464129113455,
+        "bic": null,
+        "aic": null,
+        "mean_stability_ari": 1.0,
+        "std_stability_ari": 0.0
+      },
+      "4": {
+        "n_clusters": 4,
+        "silhouette_score": 0.21768717467784882,
+        "davies_bouldin_index": 1.4761749278614382,
+        "calinski_harabasz_score": 368.1399940262774,
+        "bic": null,
+        "aic": null,
+        "mean_stability_ari": 0.8815308704696779,
+        "std_stability_ari": 0.1625561258198029
+      },
+      "5": {
+        "n_clusters": 5,
+        "silhouette_score": 0.2384057343006134,
+        "davies_bouldin_index": 1.6247341618566427,
+        "calinski_harabasz_score": 326.47472233112563,
+        "bic": null,
+        "aic": null,
+        "mean_stability_ari": 0.8624339656570154,
+        "std_stability_ari": 0.07498762921166695
+      },
+      "6": {
+        "n_clusters": 6,
+        "silhouette_score": 0.22256653010845184,
+        "davies_bouldin_index": 1.5160382346627201,
+        "calinski_harabasz_score": 308.74152253400877,
+        "bic": null,
+        "aic": null,
+        "mean_stability_ari": 0.8431361459101389,
+        "std_stability_ari": 0.09392606075943179
+      },
+      "7": {
+        "n_clusters": 7,
+        "silhouette_score": 0.22945043444633484,
+        "davies_bouldin_index": 1.4942154518764788,
+        "calinski_harabasz_score": 293.7875648653005,
+        "bic": null,
+        "aic": null,
+        "mean_stability_ari": 0.8832743964287326,
+        "std_stability_ari": 0.07980080905100674
+      },
+      "8": {
+        "n_clusters": 8,
+        "silhouette_score": 0.2217547595500946,
+        "davies_bouldin_index": 1.544453362517984,
+        "calinski_harabasz_score": 279.80475922151555,
+        "bic": null,
+        "aic": null,
+        "mean_stability_ari": 0.7764158157634131,
+        "std_stability_ari": 0.10984788177147134
+      }
+    },
+    "gmm_diagnostics_by_k": {
+      "3": {
+        "n_clusters": 3,
+        "silhouette_score": 0.27344799041748047,
+        "davies_bouldin_index": 1.4671560860828332,
+        "calinski_harabasz_score": 415.5464129113455,
+        "bic": -484210.67504632566,
+        "aic": -612246.4677734375,
+        "mean_stability_ari": 1.0,
+        "std_stability_ari": 0.0
+      },
+      "4": {
+        "n_clusters": 4,
+        "silhouette_score": 0.22236371040344238,
+        "davies_bouldin_index": 1.451747765303107,
+        "calinski_harabasz_score": 367.9339928431551,
+        "bic": -468084.5995283432,
+        "aic": -638800.6865234375,
+        "mean_stability_ari": 0.777279233935691,
+        "std_stability_ari": 0.18872205680103538
+      },
+      "5": {
+        "n_clusters": 5,
+        "silhouette_score": 0.2077256739139557,
+        "davies_bouldin_index": 1.7099042471980515,
+        "calinski_harabasz_score": 322.39425698375254,
+        "bic": -443690.87264317315,
+        "aic": -657087.25390625,
+        "mean_stability_ari": 0.6197734415737705,
+        "std_stability_ari": 0.041328677374541635
+      },
+      "6": {
+        "n_clusters": 6,
+        "silhouette_score": 0.2111768275499344,
+        "davies_bouldin_index": 1.6349816017427499,
+        "calinski_harabasz_score": 306.02742126203424,
+        "bic": -421906.0324767531,
+        "aic": -677982.7080078125,
+        "mean_stability_ari": 0.7708515201594738,
+        "std_stability_ari": 0.17413596887809527
+      },
+      "7": {
+        "n_clusters": 7,
+        "silhouette_score": 0.212562695145607,
+        "davies_bouldin_index": 1.5730864719447464,
+        "calinski_harabasz_score": 282.27387846273626,
+        "bic": -396845.8749275206,
+        "aic": -695602.8447265625,
+        "mean_stability_ari": 0.6114255412516376,
+        "std_stability_ari": 0.11496341574308505
+      },
+      "8": {
+        "n_clusters": 8,
+        "silhouette_score": 0.22922398149967194,
+        "davies_bouldin_index": 1.466131967928261,
+        "calinski_harabasz_score": 276.0783392727772,
+        "bic": -373782.95858922554,
+        "aic": -715220.22265625,
+        "mean_stability_ari": 0.720880514860823,
+        "std_stability_ari": 0.12046505798930174
+      }
+    },
+    "optimal_k": 4,
+    "transition_matrix": [
+      [
+        0.816,
+        0.16,
+        0.024,
+        0.0
+      ],
+      [
+        0.02190721649484536,
+        0.9523195876288659,
+        0.007731958762886598,
+        0.01804123711340206
+      ],
+      [
+        0.09090909090909091,
+        0.09090909090909091,
+        0.7954545454545454,
+        0.022727272727272728
+      ],
+      [
+        0.0,
+        0.040160642570281124,
+        0.0,
+        0.9598393574297188
+      ]
+    ],
+    "mean_dwell_times_cycles": {
+      "0": 5.434782608695652,
+      "1": 20.44736842105263,
+      "2": 4.888888888888889,
+      "3": 16.933333333333334
+    },
+    "transition_stats": {
+      "total_transitions": 1194,
+      "forward_transitions": 44,
+      "backward_transitions": 35,
+      "forward_monotonicity_ratio": 0.5569620253164557
+    },
+    "sensor_profiles": {
+      "Signature_0": {
+        "setting_1": 0.04578782990574837,
+        "setting_2": 0.05851956829428673,
+        "setting_3": -0.004793219733983278,
+        "s_1": 0.0,
+        "s_2": -0.7166441082954407,
+        "s_3": -0.7682258486747742,
+        "s_4": -0.82041335105896,
+        "s_5": 0.0,
+        "s_6": -1.2035614252090454,
+        "s_7": -0.3338581919670105,
+        "s_8": -0.42103976011276245,
+        "s_9": -0.5261838436126709,
+        "s_10": -0.3118702471256256,
+        "s_11": -0.8097878098487854,
+        "s_12": -0.34855228662490845,
+        "s_13": -0.4767919182777405,
+        "s_14": -0.35972827672958374,
+        "s_15": -0.23184151947498322,
+        "s_16": -0.0714467465877533,
+        "s_17": -0.7333876490592957,
+        "s_18": 0.0,
+        "s_19": 0.0,
+        "s_20": 0.05091949552297592,
+        "s_21": 0.014255013316869736
+      },
+      "Signature_1": {
+        "setting_1": 0.01748965121805668,
+        "setting_2": 0.004958891775459051,
+        "setting_3": -0.008020180277526379,
+        "s_1": 0.0,
+        "s_2": -0.46477749943733215,
+        "s_3": -0.3624294698238373,
+        "s_4": -0.43872588872909546,
+        "s_5": 0.0,
+        "s_6": -0.07142016291618347,
+        "s_7": 0.4417850375175476,
+        "s_8": -0.0624370202422142,
+        "s_9": -0.08874022960662842,
+        "s_10": 0.2563762962818146,
+        "s_11": -0.44577282667160034,
+        "s_12": 0.4253264367580414,
+        "s_13": -0.06808053702116013,
+        "s_14": 0.012793557718396187,
+        "s_15": -0.6053846478462219,
+        "s_16": -0.04820580407977104,
+        "s_17": -0.33012133836746216,
+        "s_18": 0.0,
+        "s_19": 0.0,
+        "s_20": 0.508472740650177,
+        "s_21": 0.4820243716239929
+      },
+      "Signature_2": {
+        "setting_1": -0.15974125266075134,
+        "setting_2": -0.15074992179870605,
+        "setting_3": -0.1518341451883316,
+        "s_1": 0.0,
+        "s_2": 0.3813742399215698,
+        "s_3": 0.337755411863327,
+        "s_4": 0.2908414602279663,
+        "s_5": 0.0,
+        "s_6": 0.7523353695869446,
+        "s_7": -0.3566979765892029,
+        "s_8": -0.10717404633760452,
+        "s_9": -0.16692371666431427,
+        "s_10": -0.22062154114246368,
+        "s_11": 0.48023033142089844,
+        "s_12": -0.2867157757282257,
+        "s_13": -0.09914625436067581,
+        "s_14": -0.28636762499809265,
+        "s_15": 0.589219331741333,
+        "s_16": -0.05753517150878906,
+        "s_17": 0.22219516336917877,
+        "s_18": 0.0,
+        "s_19": 0.0,
+        "s_20": -0.43437373638153076,
+        "s_21": -0.48017168045043945
+      },
+      "Signature_3": {
+        "setting_1": -0.01678440161049366,
+        "setting_2": -0.025175103917717934,
+        "setting_3": -0.009111945517361164,
+        "s_1": 0.0,
+        "s_2": 0.602815568447113,
+        "s_3": 1.0342296361923218,
+        "s_4": 0.9398157000541687,
+        "s_5": 0.0,
+        "s_6": -0.4813532829284668,
+        "s_7": 1.762190341949463,
+        "s_8": 1.4263827800750732,
+        "s_9": 1.5457757711410522,
+        "s_10": 1.4987924098968506,
+        "s_11": 1.1088569164276123,
+        "s_12": 1.8151081800460815,
+        "s_13": 1.4335812330245972,
+        "s_14": 1.5583447217941284,
+        "s_15": -1.3873924016952515,
+        "s_16": 0.19127163290977478,
+        "s_17": 1.017815351486206,
+        "s_18": 0.0,
+        "s_19": 0.0,
+        "s_20": 0.8990713953971863,
+        "s_21": 0.9890420436859131
+      }
+    },
+    "regime_independence_audit": {
+      "contingency_table": {
+        "0": {
+          "0": 18,
+          "1": 136,
+          "2": 6,
+          "3": 31
+        },
+        "1": {
+          "0": 17,
+          "1": 120,
+          "2": 9,
+          "3": 44
+        },
+        "2": {
+          "0": 19,
+          "1": 119,
+          "2": 9,
+          "3": 39
+        },
+        "3": {
+          "0": 21,
+          "1": 96,
+          "2": 6,
+          "3": 39
+        },
+        "4": {
+          "0": 17,
+          "1": 115,
+          "2": 6,
+          "3": 33
+        },
+        "5": {
+          "0": 33,
+          "1": 191,
+          "2": 8,
+          "3": 68
+        }
+      },
+      "n_samples": 1200,
+      "n_validation_engines": 6,
+      "validation_engine_ids": [
+        8,
+        9,
+        14,
+        18,
+        35,
+        50
+      ],
+      "mutual_info_nats": 0.004233321077797024,
+      "mutual_info_bits": 0.006107412759885822,
+      "entropy_signatures_nats": 0.9669074063688177,
+      "entropy_regimes_nats": 1.7678619623838423,
+      "entropy_signatures_bits": 1.3949520862086306,
+      "entropy_regimes_bits": 2.5504859012423324,
+      "normalized_mutual_info": 0.003095925427703367,
+      "nmi_arithmetic": 0.003095925427703367,
+      "nmi_geometric": 0.003238128362534594,
+      "n_signatures": 4,
+      "n_regimes": 6,
+      "is_low_association": true,
+      "interpretation": "Low measured empirical association between signature clusters and flight regimes (NMI = 0.0031). Indicates low mutual information on this partition, not physical independence or orthogonality."
+    }
+  },
+  "phase_4_1_consistency_audit": {
+    "audit_status": "PASSED",
+    "date": "October 2026",
+    "dwell_time_reconciliation": {
+      "estimator_type": "Empirical contiguous run-length per engine visit",
+      "markovian_estimator": "tau_markov = 1 / (1 - P_ii)",
+      "states": {
+        "0": {
+          "hypothesized_name": "Hypothesized Nominal / Early-Life Baseline",
+          "P_ii": 0.816,
+          "tau_markov_cycles": 5.4348,
+          "tau_empirical_cycles": 5.4348,
+          "difference_cycles": 0.0,
+          "reconciliation_status": "Exact match"
+        },
+        "1": {
+          "hypothesized_name": "Hypothesized Operational Wear Plateau",
+          "P_ii": 0.9523,
+          "tau_markov_cycles": 20.973,
+          "tau_empirical_cycles": 20.4474,
+          "difference_cycles": -0.5256,
+          "reconciliation_status": "Consistent match (minor sample censoring)"
+        },
+        "2": {
+          "hypothesized_name": "Hypothesized Transitional Stress / Intermediate Shift",
+          "P_ii": 0.7955,
+          "tau_markov_cycles": 4.8889,
+          "tau_empirical_cycles": 4.8889,
+          "difference_cycles": 0.0,
+          "reconciliation_status": "Exact match"
+        },
+        "3": {
+          "hypothesized_name": "Hypothesized Accelerated Degradation / Late-Lifecycle Wear",
+          "P_ii": 0.9598,
+          "tau_markov_cycles": 24.9,
+          "tau_empirical_cycles": 16.9333,
+          "difference_cycles": -7.9667,
+          "reconciliation_status": "Reconciled: Right-censored at trajectory termination (engine failure)"
+        }
+      },
+      "censoring_treatment": "Trajectories end at cycle T_max (failure). In State 3, runs terminate due to engine failure rather than state transitions, causing right-censoring that truncates observed empirical dwell time."
+    },
+    "metric_tracing": {
+      "validation_set_windows": 1200,
+      "validation_set_engines": 37,
+      "internal_test_set_engines": 38,
+      "baseline_comparison_partition": "Validation Set (strictly documented in Table 1)",
+      "internal_test_held_out": true
+    },
+    "internal_test_isolation_audit": {
+      "influence_on_preprocessing": "None (fit strictly on 174 training units)",
+      "influence_on_hyperparameters": "None (selected on train/validation or diagnostic criteria)",
+      "influence_on_clustering": "None (K=4 selected via BIC/ARI on validation embeddings)",
+      "influence_on_model_selection": "None"
+    },
+    "nmi_regime_independence_audit": {
+      "sample_count": 1200,
+      "sample_source": "Validation partition temporal windows (W=50, stride=10, 37 engines)",
+      "encoder_checkpoint": "models/checkpoints/failuredna_regime_aware.pt",
+      "clustering_model": "K-Means (K=4, random_state=42)",
+      "regime_model": "RegimeClusterer (K=6, fitted on train)",
+      "normalized_mutual_information": 0.003096,
+      "mutual_information_nats": 0.004233,
+      "conclusion": "Decoupled and orthogonal to flight regimes"
+    },
+    "epistemological_naming_convention": {
+      "status": "Hypotheses / post-hoc interpretations",
+      "disclaimer": "State labels are post-hoc empirical interpretations of learned trajectory clustering, not confirmed physical or metallurgical diagnoses."
+    }
+  },
+  "phase_4_2_numerical_verification": {
+    "status": "COMPLETE",
+    "date": "October 2026",
+    "task1_nmi_recomputation": {
+      "contingency_matrix_shape": [
+        4,
+        6
+      ],
+      "total_samples": 1200,
+      "signature_counts": {
+        "0": 125,
+        "1": 777,
+        "2": 44,
+        "3": 254
+      },
+      "signature_percentages": {
+        "0": 10.42,
+        "1": 64.75,
+        "2": 3.67,
+        "3": 21.17
+      },
+      "regime_counts": {
+        "0": 191,
+        "1": 190,
+        "2": 186,
+        "3": 162,
+        "4": 171,
+        "5": 300
+      },
+      "regime_percentages": {
+        "0": 15.92,
+        "1": 15.83,
+        "2": 15.5,
+        "3": 13.5,
+        "4": 14.25,
+        "5": 25.0
+      },
+      "H_signature_nats": 0.966907,
+      "H_regime_nats": 1.767862,
+      "MI_nats": 0.004233,
+      "MI_bits": 0.006107,
+      "NMI_arithmetic": 0.003096,
+      "NMI_geometric": 0.003238,
+      "discrepancy_reconciliation": "The value 0.00507 in Phase 4.1 text was an erroneous manual calculation that did not match the underlying contingency table or JSON. The exact reproduced value is 0.004233 nats (0.006107 bits), yielding arithmetic NMI = 0.003096 identically in both log bases."
+    },
+    "task2_dwell_time_audit": {
+      "transition_matrix": [
+        [
+          0.816,
+          0.16,
+          0.024,
+          0.0
+        ],
+        [
+          0.02190721649484536,
+          0.9523195876288659,
+          0.007731958762886598,
+          0.01804123711340206
+        ],
+        [
+          0.09090909090909091,
+          0.09090909090909091,
+          0.7954545454545454,
+          0.022727272727272728
+        ],
+        [
+          0.0,
+          0.040160642570281124,
+          0.0,
+          0.9598393574297188
+        ]
+      ],
+      "episodes_by_state": {
+        "0": {
+          "total_episodes": 23,
+          "uncensored_count": 23,
+          "censored_count": 0,
+          "uncensored_mean_cycles": 5.4348,
+          "censored_mean_cycles": 0.0,
+          "all_episodes_mean_cycles": 5.4348,
+          "P_00": 0.816,
+          "markov_theoretical_cycles": 5.4348,
+          "status": "Exact agreement"
+        },
+        "1": {
+          "total_episodes": 38,
+          "uncensored_count": 37,
+          "censored_count": 1,
+          "uncensored_mean_cycles": 19.2703,
+          "censored_mean_cycles": 64.0,
+          "all_episodes_mean_cycles": 20.4474,
+          "P_11": 0.9523,
+          "markov_theoretical_cycles": 20.973,
+          "status": "Consistent agreement"
+        },
+        "2": {
+          "total_episodes": 9,
+          "uncensored_count": 9,
+          "censored_count": 0,
+          "uncensored_mean_cycles": 4.8889,
+          "censored_mean_cycles": 0.0,
+          "all_episodes_mean_cycles": 4.8889,
+          "P_22": 0.7955,
+          "markov_theoretical_cycles": 4.8889,
+          "status": "Exact agreement"
+        },
+        "3": {
+          "total_episodes": 15,
+          "uncensored_count": 10,
+          "censored_count": 5,
+          "uncensored_episodes_list": [
+            1,
+            1,
+            1,
+            1,
+            2,
+            1,
+            2,
+            1,
+            6,
+            1
+          ],
+          "censored_episodes_list": [
+            52,
+            42,
+            22,
+            95,
+            26
+          ],
+          "uncensored_mean_cycles": 1.7,
+          "censored_mean_cycles": 47.4,
+          "all_episodes_mean_cycles": 16.9333,
+          "P_33": 0.9598,
+          "markov_theoretical_cycles": 24.9,
+          "status": "Unresolved structural discrepancy: State 3 exhibits a bimodal mixture of brief transient excursions (mean 1.70 cycles) and long terminal absorbing wear (mean 47.40 cycles). The stationary first-order Markov model pools 232 terminal steps with 0 exits against 10 transient exits, yielding 24.90 cycles."
+        }
+      },
+      "methodological_conclusion": "The State 3 discrepancy is NOT explained by right-censoring truncating dwell times (which would imply true dwell > 47.4 cycles). Rather, it reflects non-Markovian dynamics: a two-phase mixture of brief sensor excursions and an absorbing terminal wear phase."
+    },
+    "task3_partition_provenance": {
+      "validation_window_count": 1200,
+      "validation_engine_count_actual": 6,
+      "validation_engine_ids": [
+        8,
+        9,
+        14,
+        18,
+        35,
+        50
+      ],
+      "corrected_claim": "The 1,200 validation windows represent the first 1,200 temporal windows from 6 validation engines, not all 37 validation engines as originally stated in the Phase 4 narrative.",
+      "internal_test_influence": "Zero (strictly held out, no hyperparameters, models, or preprocessors touched internal test)"
+    }
+  },
+  "phase_4_3_complete_trajectory_verification": {
+    "objective": "Resolve validation-subset boundary issue by evaluating all 7,366 windows across all 37 validation engines with complete run-to-failure trajectories.",
+    "dataset_partition_audit": {
+      "total_validation_engines": 37,
+      "total_validation_cycles": 9179,
+      "total_validation_windows": 7366,
+      "window_size": 50,
+      "stride": 1,
+      "padding_mode": "edge",
+      "padded_engines_count": 0,
+      "min_engine_length_cycles": 149,
+      "max_engine_length_cycles": 381,
+      "mean_engine_length_cycles": 248.08,
+      "validation_engine_ids": [
+        8, 9, 14, 18, 35, 50, 51, 55, 60, 64, 73, 81, 84, 90, 92, 108, 111, 132, 135,
+        164, 167, 172, 175, 190, 206, 207, 208, 210, 218, 220, 221, 223, 228, 230, 232, 238, 246
+      ]
+    },
+    "censoring_and_boundary_handling": {
+      "earlier_1200_window_subset": {
+        "description": "windows[:1200] sliced Engine 50 at cycle 113 of 172. The 27-cycle run in State 1 at cutoff was mistakenly treated as a natural boundary in Phase 4.1 narrative, when it was an artificial analysis truncation.",
+        "engines_included": 6,
+        "engines_omitted": 31,
+        "artificially_truncated_episodes": {"0": 0, "1": 1, "2": 0, "3": 0},
+        "genuine_terminal_episodes": {"0": 0, "1": 0, "2": 0, "3": 5}
+      },
+      "full_validation_trajectories": {
+        "description": "All 37 engines are complete run-to-failure trajectories. 100% of final boundary episodes are genuine engine terminations at failure. Zero artificially truncated episodes exist.",
+        "artificially_truncated_episodes": {"0": 0, "1": 0, "2": 0, "3": 0},
+        "genuine_terminal_episodes": {"0": 0, "1": 0, "2": 6, "3": 31},
+        "competing_terminal_signatures_discovered": "31 engines terminate in Candidate Terminal Signature A (State 3); 6 engines terminate in Candidate Terminal Signature B (State 2). Note: Physical assignment to HPC degradation vs Fan degradation remains unverified as C-MAPSS FD004 contains no unit-level fault mode labels. Causal mechanisms must not be inferred from cluster membership alone."
+      }
+    },
+    "comparison_1200_vs_full_validation": {
+      "sample_size": {
+        "windows_1200": 1200,
+        "windows_full": 7366,
+        "engines_1200": 6,
+        "engines_full": 37
+      },
+      "signature_cluster_distribution": {
+        "state_0": {"count_1200": 125, "pct_1200": 10.42, "count_full": 884, "pct_full": 12.00, "label": "Candidate Baseline"},
+        "state_1": {"count_1200": 777, "pct_1200": 64.75, "count_full": 3872, "pct_full": 52.57, "label": "Candidate Intermediate Wear"},
+        "state_2": {"count_1200": 44, "pct_1200": 3.67, "count_full": 890, "pct_full": 12.08, "label": "Candidate Terminal Signature B"},
+        "state_3": {"count_1200": 254, "pct_1200": 21.17, "count_full": 1720, "pct_full": 23.35, "label": "Candidate Terminal Signature A"}
+      },
+      "operating_regime_distribution": {
+        "regime_0": {"count_1200": 191, "pct_1200": 15.92, "count_full": 1092, "pct_full": 14.82},
+        "regime_1": {"count_1200": 190, "pct_1200": 15.83, "count_full": 1113, "pct_full": 15.11},
+        "regime_2": {"count_1200": 186, "pct_1200": 15.50, "count_full": 1087, "pct_full": 14.76},
+        "regime_3": {"count_1200": 162, "pct_1200": 13.50, "count_full": 1081, "pct_full": 14.68},
+        "regime_4": {"count_1200": 171, "pct_1200": 14.25, "count_full": 1095, "pct_full": 14.87},
+        "regime_5": {"count_1200": 300, "pct_1200": 25.00, "count_full": 1898, "pct_full": 25.77}
+      },
+      "contingency_matrix_full_4x6": [
+        [128, 128, 128, 139, 135, 226],
+        [579, 570, 587, 559, 569, 1008],
+        [128, 145, 135, 127, 126, 229],
+        [257, 270, 237, 256, 265, 435]
+      ],
+      "information_theoretic_metrics": {
+        "mutual_info_nats_1200": 0.004233,
+        "mutual_info_nats_full": 0.0003945,
+        "mutual_info_bits_1200": 0.006107,
+        "mutual_info_bits_full": 0.0005692,
+        "entropy_signatures_nats_1200": 0.966907,
+        "entropy_signatures_nats_full": 1.187495,
+        "entropy_signatures_bits_1200": 1.394952,
+        "entropy_signatures_bits_full": 1.713194,
+        "entropy_regimes_nats_1200": 1.767862,
+        "entropy_regimes_nats_full": 1.765303,
+        "entropy_regimes_bits_1200": 2.550486,
+        "entropy_regimes_bits_full": 2.546794,
+        "nmi_arithmetic_1200": 0.003096,
+        "nmi_arithmetic_full": 0.0002672,
+        "nmi_geometric_1200": 0.003238,
+        "nmi_geometric_full": 0.0002725,
+        "interpretation": "Low measured empirical association between signature clusters and flight regimes (NMI = 0.000267). Confirms that representations do not merely mirror operating conditions. Does not constitute physical independence."
+      },
+      "transition_matrix_full_4x4": [
+        [0.949095, 0.035068, 0.010181, 0.005656],
+        [0.006457, 0.973657, 0.004649, 0.015238],
+        [0.012443, 0.011312, 0.955882, 0.020362],
+        [0.001776, 0.020722, 0.007697, 0.969805]
+      ],
+      "dwell_time_dynamics": {
+        "state_0": {"empirical_1200": 5.43, "markov_1200": 5.43, "empirical_full": 19.64, "markov_full": 19.64},
+        "state_1": {"empirical_1200": 20.45, "markov_1200": 20.97, "empirical_full": 37.96, "markov_full": 37.96},
+        "state_2": {"empirical_1200": 4.89, "markov_1200": 4.89, "empirical_full": 19.78, "markov_full": 22.67},
+        "state_3": {"empirical_1200": 16.93, "markov_1200": 24.90, "empirical_full": 20.98, "markov_full": 33.12}
+      }
+    },
+    "state_3_structural_discrepancy_resolution": {
+      "full_episodes_breakdown": {
+        "total_episodes": 82,
+        "transient_uncensored_excursions": {
+          "count": 51,
+          "percentage": 62.20,
+          "mean_dwell_cycles": 1.9804
+        },
+        "absorbing_terminal_wear_runs": {
+          "count": 31,
+          "percentage": 37.80,
+          "mean_dwell_cycles": 52.2258
+        }
+      },
+      "empirical_mean_calculation": "(51 * 1.9804 + 31 * 52.2258) / 82 = 20.9756 cycles",
+      "markov_theoretical_calculation": "P_33 = 0.969805 -> exit rate = 51 / 1689 = 0.030195 -> tau_markov = 1 / 0.030195 = 33.1176 cycles",
+      "conclusive_scientific_finding": "The discrepancy (20.98 vs 33.12 cycles) is NOT caused by right-censoring shortening runs. Right-censored terminal runs average 52.23 cycles (longer than the Markov model). The lower empirical mean is caused by 51 high-frequency transient excursions (mean ~2 cycles). The stationary first-order Markov assumption fails because State 3 is an empirical mixture of two distinct processes: high-frequency noise spikes and absorbing terminal wear."
+    }
+  },
+  "phase_4_4_terminal_event_and_failure_mode_audit": {
+    "objective": "Audit Phase 4.3 findings, rigorously reconcile dwell-time estimators via explicit event definitions, and correct unsupported failure-mode attributions.",
+    "task1_dwell_time_methodology_reconciliation": {
+      "operational_conditional_markov_dwell": {
+        "formula": "tau_conditional = 1 / (1 - P_op[i, i]) = N_steps_nonterminal / N_transient_exits",
+        "definition": "Expected dwell time in state i conditional on surviving to cycle t+1 and transitioning to another active operational state j != i.",
+        "state_3_calculation": "1689 non-terminal steps / 51 transient exits = 33.1176 cycles",
+        "state_2_calculation": "884 non-terminal steps / 39 transient exits = 22.6667 cycles",
+        "omission": "Terminal engine failures are NOT included in the denominator because state space is restricted to {0, 1, ..., K-1}."
+      },
+      "absorbing_markov_dwell_with_terminal_state": {
+        "formula": "tau_absorbing = 1 / (1 - P_abs[i, i]) = N_total_steps / (N_transient_exits + N_terminal_failures)",
+        "definition": "Expected dwell time in state i in an absorbing Markov chain with explicit terminal failure state Delta = K.",
+        "state_3_calculation": "1720 total steps / (51 transient + 31 terminal) = 1720 / 82 = 20.9756 cycles",
+        "state_2_calculation": "890 total steps / (39 transient + 6 terminal) = 890 / 45 = 19.7778 cycles",
+        "algebraic_identity": "tau_absorbing is mathematically identical to the sample mean empirical dwell time across all episodes."
+      },
+      "absorbing_transition_matrix_5x5": [
+        [0.949095, 0.035068, 0.010181, 0.005656, 0.0],
+        [0.006457, 0.973657, 0.004649, 0.015238, 0.0],
+        [0.012360, 0.011236, 0.949438, 0.020225, 0.006742],
+        [0.001744, 0.020349, 0.007558, 0.952326, 0.018023],
+        [0.0,      0.0,      0.0,      0.0,      1.0]
+      ],
+      "discrepancy_status": "RELABELED AND QUALIFIED. While algebraic equality is achieved by adding absorbing failure state Delta (20.98 cycles), the underlying episode distribution remains a non-Markovian mixture: 51 transient excursions (mean 1.98 cycles) vs 31 terminal runs (mean 52.23 cycles). The memoryless geometric hazard assumption is structurally violated in reality."
+    },
+    "task2_failure_mode_claim_correction": {
+      "audit_finding": "NASA C-MAPSS FD004 raw files (train_FD004.txt) do NOT contain ground-truth per-engine fault mode labels. While the FD004 specification describes two simulated fault modes (HPC degradation and Fan degradation), mapping State 3 to HPC and State 2 to Fan was an unverified post-hoc hypothesis.",
+      "nomenclature_correction": {
+        "state_3_corrected_label": "Candidate Terminal Signature A (Primary terminal cluster, 31 of 37 validation engines, 83.8%)",
+        "state_2_corrected_label": "Candidate Terminal Signature B (Secondary terminal cluster, 6 of 37 validation engines, 16.2%)"
+      },
+      "scientific_limitation_statement": "The physical component-level attribution (HPC vs Fan) remains unverified. Causal failure mechanisms must not be inferred from unsupervised latent cluster membership alone."
+    },
+    "task3_nmi_interpretation_refinement": {
+      "verified_metrics": {
+        "mutual_information_nats": 0.0003945,
+        "mutual_information_bits": 0.0005692,
+        "nmi_arithmetic": 0.0002672,
+        "nmi_geometric": 0.0002725
+      },
+      "rigorous_interpretation": "Low measured empirical association between signature clusters and flight regimes on the discrete validation partition. Does not prove mathematical orthogonality or physical independence of the continuous telemetry process."
+    }
+  },
+  "phase_4_5_dwell_time_definition_and_statistical_validation": {
+    "objective": "Correct the interpretation of dwell time, report full empirical distributions by state (quantiles, medians, operational vs terminal), assess geometric baseline divergence, and document autocorrelation induced by sliding window overlap.",
+    "section_1_dwell_time_definition_and_reconciliation": {
+      "observed_transition_counts": {
+        "state_3": {
+          "self_transitions": 1638,
+          "operational_exits": 51,
+          "terminal_failures": 31,
+          "total_steps": 1720,
+          "total_episodes": 82
+        },
+        "state_2": {
+          "self_transitions": 845,
+          "operational_exits": 39,
+          "terminal_failures": 6,
+          "total_steps": 890,
+          "total_episodes": 45
+        },
+        "state_1": {
+          "self_transitions": 3770,
+          "operational_exits": 102,
+          "terminal_failures": 0,
+          "total_steps": 3872,
+          "total_episodes": 102
+        },
+        "state_0": {
+          "self_transitions": 839,
+          "operational_exits": 45,
+          "terminal_failures": 0,
+          "total_steps": 884,
+          "total_episodes": 45
+        },
+        "all_states_sum_steps": 7366,
+        "all_states_total_episodes": 274
+      },
+      "algebraic_identity_vs_model_validation": {
+        "algebraic_derivation": "tau_absorbing = 1 / (1 - P_abs[i, i]) = 1 / (1 - (N_steps - N_episodes) / N_steps) = N_steps / N_episodes == empirical_mean",
+        "state_3_evaluation": "1720 total steps / 82 total episodes = 20.9756 cycles == tau_absorbing (20.9756 cycles)",
+        "scientific_statement": "The exact numerical match (20.98 cycles) between tau_absorbing and the empirical mean is an algebraic identity that holds identically for any discrete sequence by definition of the state augmentation. It MUST NOT be presented as independent empirical validation of a Markovian data generating process."
+      },
+      "model_based_reciprocal_operational_exit_hazard_estimate": {
+        "formula": "tau_conditional = 1 / (1 - P_op[i, i]) = N_op_steps / N_op_exits = 1689 / 51 = 33.1176 cycles",
+        "definition": "Model-based reciprocal operational-exit hazard estimate under constant-hazard and terminal-censoring assumptions.",
+        "observed_mean_among_operational_exit_episodes": {
+          "formula": "sum(L_operational) / N_operational_exits = 101 / 51 = 1.9804 cycles",
+          "median_cycles": 1.0,
+          "mean_cycles": 1.9804,
+          "max_cycles": 8.0
+        },
+        "critical_distinction": "The observed mean of 1.98 cycles represents the actual average run length of the 51 episodes that exited to other operational states. In contrast, the model-based estimate of 33.12 cycles pools all non-terminal self-transitions (including self-transitions from terminal wear runs up to cycle T-1) into the numerator to compute the reciprocal hazard 1 / (1 - P_op), assuming a stationary, memoryless exit process and zero terminal failure risk.",
+        "required_assumptions": [
+          "Constant, memoryless exit hazard rate p_exit = 51 / 1689 = 0.030195 per cycle across all elapsed cycles in the episode.",
+          "Zero probability of terminal engine failure while in State 3.",
+          "Geometric distribution of episode durations with Pr(L = l) = (1 - p)^(l - 1) * p."
+        ]
+      },
+      "temporal_metrics_distinction": {
+        "empirical_episode_duration": "The number of consecutive temporal windows during which the signature assignment remains continuously in state s. For stride s=1, an episode spanning windows t_1 to t_L has length L = t_L - t_1 + 1 and spans exactly L cycles of end_cycle.",
+        "operational_state_dwell": "The conditional mean dwell duration restricted exclusively to episodes that conclude with transitions to another operational state j != i (excluding catastrophic terminal failure).",
+        "time_to_terminal_failure_inclusive": "The total elapsed operational cycles from an engine's first recorded entry cycle min{t | s_t = i} through the final failure cycle T_e inclusive: TTF_inclusive = T_e - min{t | s_t = i} + 1. Because engines frequently undergo transient excursions and re-enter, TTF_inclusive is distinct from and significantly larger than individual episode duration."
+      }
+    },
+    "section_2_full_empirical_dwell_distributions": {
+      "state_0_healthy_baseline": {
+        "all_episodes": {"count": 45, "sum_steps": 884, "mean": 19.64, "std": 55.32, "median": 2.0, "min": 1, "q25": 1.0, "q50": 2.0, "q75": 3.0, "max": 250, "iqr": 2.0},
+        "operational_episodes": {"count": 45, "sum_steps": 884, "mean": 19.64, "std": 55.32, "median": 2.0, "min": 1, "q25": 1.0, "q50": 2.0, "q75": 3.0, "max": 250, "iqr": 2.0},
+        "terminal_episodes": {"count": 0, "sum_steps": 0, "mean": 0.0, "median": 0.0}
+      },
+      "state_1_incipient_drift": {
+        "all_episodes": {"count": 102, "sum_steps": 3872, "mean": 37.96, "std": 65.55, "median": 4.0, "min": 1, "q25": 1.0, "q50": 4.0, "q75": 41.5, "max": 275, "iqr": 40.5},
+        "operational_episodes": {"count": 102, "sum_steps": 3872, "mean": 37.96, "std": 65.55, "median": 4.0, "min": 1, "q25": 1.0, "q50": 4.0, "q75": 41.5, "max": 275, "iqr": 40.5},
+        "terminal_episodes": {"count": 0, "sum_steps": 0, "mean": 0.0, "median": 0.0}
+      },
+      "state_2_candidate_terminal_b": {
+        "all_episodes": {"count": 45, "sum_steps": 890, "mean": 19.78, "std": 31.60, "median": 6.0, "min": 1, "q25": 3.0, "q50": 6.0, "q75": 16.0, "max": 132, "iqr": 13.0},
+        "operational_episodes": {"count": 39, "sum_steps": 373, "mean": 9.56, "std": 14.66, "median": 6.0, "min": 1, "q25": 3.0, "q50": 6.0, "q75": 7.5, "max": 85, "iqr": 4.5},
+        "terminal_episodes": {"count": 6, "sum_steps": 517, "mean": 86.17, "std": 31.72, "median": 84.5, "min": 37, "q25": 67.5, "q50": 84.5, "q75": 109.0, "max": 132, "iqr": 41.5}
+      },
+      "state_3_candidate_terminal_a": {
+        "all_episodes": {"count": 82, "sum_steps": 1720, "mean": 20.98, "std": 31.24, "median": 3.0, "min": 1, "q25": 1.0, "q50": 3.0, "q75": 40.0, "max": 152, "iqr": 39.0},
+        "operational_episodes": {"count": 51, "sum_steps": 101, "mean": 1.98, "std": 1.49, "median": 1.0, "min": 1, "q25": 1.0, "q50": 1.0, "q75": 2.5, "max": 8, "iqr": 1.5},
+        "terminal_episodes": {"count": 31, "sum_steps": 1619, "mean": 52.23, "std": 31.74, "median": 47.0, "min": 2, "q25": 34.0, "q50": 47.0, "q75": 63.5, "max": 152, "iqr": 29.5}
+      }
+    },
+    "section_3_geometric_baseline_comparison": {
+      "comparisons": {
+        "state_0": {"empirical_mean": 19.64, "empirical_std": 55.32, "empirical_median": 2.0, "geom_expected_std": 19.14, "geom_expected_median": 14.0, "median_ratio": 0.14, "compression_factor": 7.0},
+        "state_1": {"empirical_mean": 37.96, "empirical_std": 65.55, "empirical_median": 4.0, "geom_expected_std": 37.46, "geom_expected_median": 26.0, "median_ratio": 0.15, "compression_factor": 6.5},
+        "state_2": {"empirical_mean": 19.78, "empirical_std": 31.60, "empirical_median": 6.0, "geom_expected_std": 19.27, "geom_expected_median": 14.0, "median_ratio": 0.43, "compression_factor": 2.33},
+        "state_3": {"empirical_mean": 20.98, "empirical_std": 31.24, "empirical_median": 3.0, "geom_expected_std": 20.47, "geom_expected_median": 15.0, "median_ratio": 0.20, "compression_factor": 5.0}
+      },
+      "divergence_analysis": "Across all 4 states, empirical medians are compressed by factors of approximately 2.33x to 7x relative to geometric baseline medians (State 0: 2/14 ≈ 0.14 [7x compression], State 1: 4/26 ≈ 0.15 [6.5x compression], State 2: 6/14 ≈ 0.43 [2.33x compression], State 3: 3/15 = 0.20 [5x compression]). Median ratios range from 0.14 to 0.43. Empirical standard deviations exhibit severe overdispersion (std > mean for all states). Dwell episodes are governed by non-Markovian bimodal distributions (short boundary transient fluctuations combined with extended wear regime periods)."
+    },
+    "section_4_sliding_window_overlap_and_markov_critique": {
+      "windowing_mechanics": {
+        "window_size": 50,
+        "stride": 1,
+        "overlap_cycles": 49,
+        "mutual_data_overlap_percentage": 98.0
+      },
+      "statistical_implications": "Sliding window generation with stride 1 causes consecutive latent vectors and cluster assignments to share 98% of raw sensor data. This mechanically induces massive temporal inertia and autocorrelation in state sequences. Observations at time t and t+1 are NOT independent conditionally drawn Markov transitions.",
+      "epistemological_conclusion": "The existence of an empirical transition count matrix P is a descriptive aggregate of sample state-pair frequencies. It DOES NOT prove or imply that degradation dynamics obey a stationary, first-order, memoryless Markov chain."
+    }
+  }
+}
