@@ -89,16 +89,18 @@ export interface ModelComparisonRow {
 export interface PairedBootstrapRow {
   comparison: string;
   metric: string;
-  delta_mean: number;
-  ci_lower: number;
-  ci_upper: number;
-  raw_p_value: number;
-  p_davison_hinkley: number;
-  holm_adj_p_metric: number;
-  holm_adj_p_primary: number;
-  holm_adj_p_omnibus: number;
-  sig_omnibus_05: boolean;
-  stat_advantage_winner: string;
+  delta_point: number;
+  ci_95_lower: number;
+  ci_95_upper: number;
+  p_val_raw: number;
+  p_val_holm_metric: number;
+  p_val_holm_primary3: number | null;
+  p_val_holm_omnibus: number;
+  ci_includes_zero: boolean;
+  nominal_significance_05: boolean;
+  fwer_significance_metric_05: boolean;
+  fwer_significance_omnibus_05: boolean;
+  stat_advantage_winner?: string;
 }
 
 export interface BenchmarkResponse {

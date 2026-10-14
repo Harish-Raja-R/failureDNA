@@ -53,7 +53,7 @@ export const BenchmarkLab: React.FC = () => {
         rmse: Number(m.rmse.toFixed(2)),
         r2: Number(m.r2.toFixed(3)),
         nasa_score: Math.round(m.nasa_score),
-        isFailureDNA: m.model_key === 'failuredna_regime_aware',
+        isFailureDNA: m.model_key.includes('failuredna_regime_aware'),
       })) || [];
 
   return (
@@ -331,8 +331,8 @@ export const BenchmarkLab: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[#E7E5E0]">
                 {data?.model_comparison?.map((row) => {
-                  const isFailureDNA = row.model_key === 'failuredna_regime_aware';
-                  const isXGBoost = row.model_key === 'xgboost_supervised';
+                  const isFailureDNA = row.model_key.includes('failuredna_regime_aware');
+                  const isXGBoost = row.model_key.includes('xgboost');
                   return (
                     <tr
                       key={row.model_key}
@@ -404,33 +404,43 @@ export const BenchmarkLab: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E7E5E0]">
-                  {data.statistical_audit_paired_bootstrap.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-[#F8F8F5]/60 transition-colors">
-                      <td className="py-2.5 px-4 text-[#171717] font-medium">{row.comparison}</td>
-                      <td className="py-2.5 px-3 text-[#737373] uppercase">{row.metric}</td>
-                      <td className="py-2.5 px-3 tabular-nums font-semibold text-[#171717]">
-                        {row.delta_mean > 0 ? `+${row.delta_mean.toFixed(2)}` : row.delta_mean.toFixed(2)}
-                      </td>
-                      <td className="py-2.5 px-3 tabular-nums text-[#737373]">
-                        [{row.ci_lower.toFixed(2)}, {row.ci_upper.toFixed(2)}]
-                      </td>
-                      <td className="py-2.5 px-3 tabular-nums text-[#737373]">{row.raw_p_value.toFixed(4)}</td>
-                      <td className="py-2.5 px-3 tabular-nums font-medium text-[#171717]">
-                        {row.holm_adj_p_omnibus.toFixed(4)}
-                      </td>
-                      <td className="py-2.5 px-4 text-right">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-                            row.stat_advantage_winner === 'XGBoost'
-                              ? 'bg-[#F8F8F5] text-[#171717] border border-[#E7E5E0]'
-                              : 'bg-[#EAE5FF] text-[#5B46D6]'
-                          }`}
-                        >
-                          {row.stat_advantage_winner}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {data.statistical_audit_paired_bootstrap.map((row, idx) => {
+                    const isXGBAdvantage = row.fwer_significance_omnibus_05 && row.delta_point > 0;
+                    const isCandidateAdvantage = row.fwer_significance_omnibus_05 && row.delta_point < 0;
+                    return (
+                      <tr key={idx} className="hover:bg-[#F8F8F5]/60 transition-colors">
+                        <td className="py-2.5 px-4 text-[#171717] font-medium">{row.comparison}</td>
+                        <td className="py-2.5 px-3 text-[#737373] uppercase">{row.metric}</td>
+                        <td className="py-2.5 px-3 tabular-nums font-semibold text-[#171717]">
+                          {row.delta_point > 0 ? `+${row.delta_point.toFixed(2)}` : row.delta_point.toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 tabular-nums text-[#737373]">
+                          [{row.ci_95_lower.toFixed(2)}, {row.ci_95_upper.toFixed(2)}]
+                        </td>
+                        <td className="py-2.5 px-3 tabular-nums text-[#737373]">{row.p_val_raw.toFixed(4)}</td>
+                        <td className="py-2.5 px-3 tabular-nums font-medium text-[#171717]">
+                          {row.p_val_holm_omnibus.toFixed(4)}
+                        </td>
+                        <td className="py-2.5 px-4 text-right">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
+                              isXGBAdvantage
+                                ? 'bg-[#F8F8F5] text-[#171717] border border-[#E7E5E0]'
+                                : isCandidateAdvantage
+                                ? 'bg-[#EAE5FF] text-[#5B46D6]'
+                                : 'bg-[#F8F8F5] text-[#737373]'
+                            }`}
+                          >
+                            {isXGBAdvantage
+                              ? 'XGBoost Advantage (p < 0.05 FWER)'
+                              : isCandidateAdvantage
+                              ? 'Candidate Advantage (p < 0.05 FWER)'
+                              : 'Non-Significant'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
