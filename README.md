@@ -1,3 +1,14 @@
+---
+title: FailureDNA Industrial AI Platform
+emoji: 🧬
+colorFrom: pink
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # FailureDNA: Self-Supervised Discovery of Failure Signatures from Multivariate Industrial Time-Series
 
 [![Dataset](https://img.shields.io/badge/Dataset-NASA%20C--MAPSS%20FD004-green.svg)](https://data.nasa.gov)
@@ -5,6 +16,8 @@
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2B%20Pydantic%20v2-009688.svg)](https://fastapi.tiangolo.com)
 [![Frontend](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite%20%2B%20Tailwind-61dafb.svg)](https://vitejs.dev)
 [![Docker](https://img.shields.io/badge/Docker-Multi--Stage%20Container-2496ed.svg)](https://docker.com)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-yellow.svg)](https://huggingface.co/spaces)
+[![AWS](https://img.shields.io/badge/AWS-App%20Runner%20%2F%20ECS-orange.svg)](https://aws.amazon.com)
 [![Tests](https://img.shields.io/badge/Tests-94%20Passing-brightgreen.svg)](https://pytest.org)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
@@ -96,6 +109,15 @@ docker compose up -d --build
 ```
 - **React Frontend:** [http://localhost:3000](http://localhost:3000)
 - **FastAPI Backend:** [http://localhost:8000](http://localhost:8000)
+
+### 4. Public Cloud Deployments
+
+| Platform | Deployment Type | Guide / Config |
+| :--- | :--- | :--- |
+| **Render.com** | 1-Click Blueprint (Free Tier) | [`render.yaml`](render.yaml) &bull; [Guide](docs/cloud_deployment_guide.md) |
+| **Hugging Face Spaces** | Docker Space (Free CPU 16GB) | `README.md` Frontmatter &bull; [Guide](docs/huggingface_spaces_deployment.md) |
+| **AWS App Runner** | Managed Container PaaS | [`apprunner.yaml`](apprunner.yaml) &bull; [Guide](docs/aws_deployment_guide.md) |
+| **AWS ECS / Fargate** | Serverless Container Orchestration | [`aws/task-definition.json`](aws/task-definition.json) &bull; [CloudFormation](aws/cloudformation.yml) |
 
 ---
 

@@ -1,0 +1,27 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face Space
+        if: env.HF_TOKEN != '' && env.HF_SPACE != ''
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ secrets.HF_SPACE }}
+        run: |
+          git config --global user.email "deploy-bot@failuredna.org"
+          git config --global user.name "FailureDNA Deploy Bot"
+          git remote add space https://user:$HF_TOKEN@huggingface.co/spaces/$HF_SPACE
+          git push --force space main

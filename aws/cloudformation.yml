@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'FailureDNA: Production AWS App Runner Service'
+
+Parameters:
+  ServiceName:
+    Type: String
+    Default: failuredna-platform
+    Description: Name of the App Runner service
+  ImageUri:
+    Type: String
+    Description: ECR Image URI (e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com/failuredna:latest)
+  Port:
+    Type: String
+    Default: '8000'
+    Description: Port on which the container listens
+
+Resources:
+  AppRunnerService:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: !Ref ServiceName
+      SourceConfiguration:
+        AutoDeploymentsEnabled: true
+        AuthenticationConfiguration:
+          AccessRoleArn: !GetAtt AppRunnerAccessRole.Arn
+        ImageRepository:
+          ImageIdentifier: !Ref ImageUri
+          ImageRepositoryType: ECR
+          ImageConfiguration:
+            Port: !Ref Port
+            RuntimeEnvironmentVariables:
+              - Name: PORT
+                Value: !Ref Port
+              - Name: PYTHONUNBUFFERED
+                Value: '1'
+      HealthCheckConfiguration:
+        Protocol: HTTP
+        Path: /health
+        Interval: 10
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 5
+      InstanceConfiguration:
+        Cpu: '1 vCPU'
+        Memory: '2 GB'
+
+  AppRunnerAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ServiceName}-apprunner-ecr-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: build.apprunner.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+
+Outputs:
+  ServiceUrl:
+    Description: Public URL of the FailureDNA App Runner service
+    Value: !GetAtt AppRunnerService.ServiceUrl
