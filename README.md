@@ -3,8 +3,8 @@ title: FailureDNA Industrial AI Platform
 emoji: 🧬
 colorFrom: pink
 colorTo: indigo
-sdk: docker
-app_port: 7860
+sdk: gradio
+app_file: app.py
 pinned: false
 license: mit
 ---
