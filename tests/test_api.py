@@ -158,6 +158,28 @@ def test_api_analyze_csv_rejects_non_finite_values(client):
     assert response.status_code == 422
 
 
+def test_api_analyze_csv_accepts_uppercase_extension(client):
+    telemetry = make_telemetry(unit_id=23)
+    response = client.post(
+        "/api/v1/analyze/csv",
+        files={"file": ("synthetic_engine.CSV", telemetry.to_csv(index=False).encode("utf-8"), "text/csv")},
+    )
+    assert response.status_code == 200
+    assert response.json()["unit_id"] == 23
+
+
+def test_api_analyze_csv_rejects_multiple_units(client):
+    first = make_telemetry(unit_id=1, cycles=10)
+    second = make_telemetry(unit_id=2, cycles=10)
+    combined = pd.concat([first, second], ignore_index=True)
+    response = client.post(
+        "/api/v1/analyze/csv",
+        files={"file": ("multiple_units.csv", combined.to_csv(index=False).encode("utf-8"), "text/csv")},
+    )
+    assert response.status_code == 422
+    assert "multiple unit IDs" in response.json()["detail"]
+
+
 def test_api_analyze_csv_rejects_invalid_extension(client):
     response = client.post(
         "/api/v1/analyze/csv",
