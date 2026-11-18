@@ -75,18 +75,22 @@ class MaskedTemporalPooling(nn.Module):
             return sum_features / mask_sum
 
         elif self.method == "last":
-            # Extract the last observed time step per batch item
-            last_indices = torch.clamp(torch.sum(mask, dim=1).long() - 1, min=0, max=W - 1)
+            # Find the actual final valid position. Counting valid elements and
+            # subtracting one is incorrect for left-padded masks such as [0, 0, 1, 1].
+            positions = torch.arange(W, device=x.device).expand(B, W)
+            last_indices = torch.where(mask > 0, positions, -1).max(dim=1).values.clamp(min=0)
             batch_idx = torch.arange(B, device=x.device)
-            return x[batch_idx, last_indices]
+            pooled = x[batch_idx, last_indices]
+            return pooled * (mask.sum(dim=1, keepdim=True) > 0).to(x.dtype)
 
         elif self.method == "attention":
-            # Score each time step with learnable query
-            scores = self.att_linear(x).squeeze(-1)  # (B, W)
-            # Mask out padded positions
-            scores = scores.masked_fill(mask == 0, -1e9)
-            weights = F.softmax(scores, dim=-1).unsqueeze(-1)  # (B, W, 1)
-            return torch.sum(x * weights, dim=1)
+            # Normalize attention only over valid positions and return zero for
+            # fully masked rows rather than a uniform average over padding.
+            scores = self.att_linear(x).squeeze(-1)
+            scores = scores.masked_fill(mask <= 0, torch.finfo(scores.dtype).min)
+            weights = F.softmax(scores, dim=-1) * (mask > 0).to(scores.dtype)
+            weights = weights / weights.sum(dim=-1, keepdim=True).clamp_min(1e-12)
+            return torch.sum(x * weights.unsqueeze(-1), dim=1)
 
         raise RuntimeError("Unreachable pooling code path.")
 
