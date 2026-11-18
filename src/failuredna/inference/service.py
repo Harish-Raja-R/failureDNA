@@ -209,11 +209,19 @@ class FailureDNAInferenceService:
         # Chronological sort
         df = df.sort_values(by=[ID_COL, CYCLE_COL]).reset_index(drop=True)
 
-        # Check for non-finite values
+        # Coerce telemetry columns explicitly so malformed object/string values
+        # become a controlled validation error instead of a NumPy TypeError/HTTP 500.
         numeric_cols = SETTING_COLS + SENSOR_COLS
-        for c in numeric_cols:
-            if not np.all(np.isfinite(df[c].to_numpy())):
-                raise ValueError(f"Non-finite, null, or NaN values detected in channel '{c}'.")
+        for column in numeric_cols:
+            values = pd.to_numeric(df[column], errors="coerce")
+            if not np.isfinite(values.to_numpy(dtype=np.float64)).all():
+                raise ValueError(
+                    f"Channel '{column}' contains non-numeric, null, NaN, or infinite values."
+                )
+            df[column] = values.astype(np.float64)
+
+        if df[ID_COL].nunique() > 1:
+            raise ValueError("Input contains multiple unit IDs. Submit one engine trajectory per request.")
 
         return df, warnings
 
@@ -377,10 +385,11 @@ class FailureDNAInferenceService:
         except Exception as e:
             raise ValueError(f"Failed to parse telemetry file '{filename}': {e}")
 
-        # If file contains multiple units, take the first unit trajectory
+        # A single analysis request must represent exactly one engine trajectory.
         if ID_COL in df.columns and df[ID_COL].nunique() > 1:
-            first_unit = df[ID_COL].iloc[0]
-            df = df[df[ID_COL] == first_unit].copy()
+            raise ValueError(
+                "Uploaded file contains multiple unit IDs. Split the file into one trajectory per upload."
+            )
 
         return self.analyze_telemetry_dataframe(df)
 
