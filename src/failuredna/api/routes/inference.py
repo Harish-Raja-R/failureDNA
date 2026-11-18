@@ -88,6 +88,8 @@ async def analyze_csv(file: UploadFile = File(..., description="Chronological en
             )
         result = service.analyze_csv_bytes(content, filename=filename)
         return AnalysisResponse(**result)
+    except HTTPException:
+        raise
     except ValueError as e:
         logger.warning(f"CSV validation failed for '{filename}': {e}")
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
