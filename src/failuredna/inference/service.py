@@ -281,14 +281,17 @@ class FailureDNAInferenceService:
         pred_rul_raw = float(self.ridge_probe.predict(emb)[0])
         pred_rul = float(np.clip(pred_rul_raw, 0.0, 125.0))
 
-        # Signature Discovery Assignment
-        sig_id = int(self.signature_clusterer.predict(emb)[0])
+        # Preserve the raw cluster index for centroid lookup. predict() returns
+        # lifecycle-ordered labels, while cluster_centers_ remains in raw model order.
+        raw_sig_id = int(self.signature_clusterer.model.predict(emb)[0])
+        mapping = self.signature_clusterer.ordered_cluster_mapping_
+        sig_id = int(mapping.get(raw_sig_id, raw_sig_id)) if mapping is not None else raw_sig_id
 
-        # Centroid distance (Euclidean distance in latent space to cluster centroid)
+        # Centroid distance (Euclidean distance in latent space to the raw cluster center)
         centroid_dist = None
-        if hasattr(self.signature_clusterer, "cluster_centers_") and self.signature_clusterer.cluster_centers_ is not None:
-            # Map raw cluster ID to ordered cluster ID if applicable
-            centroid = self.signature_clusterer.cluster_centers_[sig_id]
+        centers = self.signature_clusterer.cluster_centers_
+        if centers is not None:
+            centroid = centers[raw_sig_id]
             centroid_dist = float(np.linalg.norm(emb[0] - centroid))
 
         sig_descriptions = {
@@ -464,11 +467,23 @@ class FailureDNAInferenceService:
 _inference_service: Optional[FailureDNAInferenceService] = None
 
 
-def get_inference_service() -> FailureDNAInferenceService:
+def get_inference_service(api_settings: Optional[Any] = None) -> FailureDNAInferenceService:
+    """Return the process-wide inference service, configured and initialized once.
+
+    API settings are injected by the application lifespan. The lazy import keeps
+    the core inference module usable without importing the FastAPI application.
+    """
     global _inference_service
     if _inference_service is None:
-        _inference_service = FailureDNAInferenceService()
-        _inference_service.initialize()
-    elif not _inference_service.is_ready:
+        if api_settings is None:
+            from failuredna.api.config import settings as api_settings
+
+        _inference_service = FailureDNAInferenceService(
+            checkpoint_path=api_settings.CHECKPOINT_PATH,
+            bundle_dir=api_settings.BUNDLE_DIR,
+            benchmark_summary_path=api_settings.BENCHMARK_SUMMARY_PATH,
+            benchmark_csv_path=api_settings.BENCHMARK_CSV_PATH,
+            adjusted_bootstrap_path=api_settings.ADJUSTED_BOOTSTRAP_PATH,
+        )
         _inference_service.initialize()
     return _inference_service
