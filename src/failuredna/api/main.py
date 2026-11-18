@@ -26,9 +26,8 @@ logger = logging.getLogger("failuredna.api")
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan context manager: initialize model artifacts once at startup."""
     logger.info("Initializing FailureDNA Application Lifespan...")
-    service = get_inference_service()
-    success = service.initialize()
-    if success:
+    service = get_inference_service(settings)
+    if service.is_ready:
         logger.info("FailureDNA inference pipeline ready for traffic.")
     else:
         logger.warning("FailureDNA service initialized in degraded state. Check artifact paths.")
