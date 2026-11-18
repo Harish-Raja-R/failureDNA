@@ -1,10 +1,12 @@
 """Telemetry Analysis and Metadata API Routes."""
 
 import logging
+from pathlib import Path
 from typing import Any, Dict
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 import pandas as pd
 
+from failuredna.api.config import settings
 from failuredna.api.schemas import (
     AnalysisResponse,
     MetadataResponse,
@@ -50,7 +52,7 @@ def analyze_sequence(payload: TelemetrySequenceRequest) -> AnalysisResponse:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
         logger.error(f"Inference error: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Inference error: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Telemetry inference failed.")
 
 
 @router.post("/analyze/csv", response_model=AnalysisResponse, summary="Upload & Analyze Engine Telemetry CSV")
@@ -69,14 +71,21 @@ async def analyze_csv(file: UploadFile = File(..., description="Chronological en
 
     # Validate file extension
     filename = file.filename or "uploaded_telemetry.csv"
-    if not (filename.endswith(".csv") or filename.endswith(".txt")):
+    if Path(filename).suffix.lower() not in (".csv", ".txt"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid file type for '{filename}'. Only .csv or .txt telemetry files are accepted.",
         )
 
     try:
-        content = await file.read()
+        # Read at most one byte beyond the configured limit to avoid buffering
+        # arbitrarily large uploads before enforcing the request-size policy.
+        content = await file.read(settings.MAX_UPLOAD_SIZE_BYTES + 1)
+        if len(content) > settings.MAX_UPLOAD_SIZE_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Uploaded file exceeds the {settings.MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)} MB limit.",
+            )
         result = service.analyze_csv_bytes(content, filename=filename)
         return AnalysisResponse(**result)
     except ValueError as e:
@@ -84,4 +93,4 @@ async def analyze_csv(file: UploadFile = File(..., description="Chronological en
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
         logger.error(f"Failed processing CSV '{filename}': {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Processing error: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="CSV processing failed.")
